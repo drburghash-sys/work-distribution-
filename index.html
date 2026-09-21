@@ -1,0 +1,1760 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a4757">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GS Scheduler">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<title>General Surgery Scheduler</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#17212b;--muted:#6b7280;--line:#dde4ec;
+  --brand:#0f6175;--brand2:#0a4757;--soft:#edf7fa;--good:#127a48;--warn:#a86100;--bad:#b42318;
+  --shadow:0 8px 24px rgba(20,35,55,.07)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff;padding:16px;position:sticky;top:0;z-index:10}
+header h1{margin:0;font-size:20px} header p{margin:5px 0 0;font-size:12px;opacity:.9}
+.headerRow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.installBtn{display:none;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:8px 11px;font-weight:700;white-space:nowrap}
+.wrap{max-width:1180px;margin:auto;padding:12px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 0 12px;position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#f5f7fb 78%,rgba(245,247,251,0));scrollbar-width:none}
+.tab{border:0;background:#fff;color:var(--brand2);padding:11px 14px;border-radius:13px;white-space:nowrap;font-weight:700;box-shadow:var(--shadow)}
+.tab.active{background:var(--brand2);color:#fff}
+.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+h2{font-size:17px;margin:0 0 10px} h3{font-size:14px;margin:14px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:9px}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}.c2{grid-column:span 2}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;border:1px solid #ced7e2;border-radius:10px;padding:10px;background:#fff}
+textarea{min-height:150px;resize:vertical}
+button{cursor:pointer}
+.btn{border:0;border-radius:10px;padding:10px 13px;font-weight:700;background:var(--brand);color:#fff}
+.btn.secondary{background:#eef3f6;color:var(--brand2)} .btn.good{background:var(--good)} .btn.danger{background:#fff0ee;color:var(--bad)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted);line-height:1.7}
+.ok,.warn,.error{padding:9px 10px;border-radius:10px;margin-top:8px;font-size:12px}
+.ok{background:#edf9f2;color:#0f6b40;border:1px solid #bce8cf}
+.warn{background:#fff8e8;color:#7b4a00;border:1px solid #ffd995}
+.error{background:#fff0ee;color:#8a1f17;border:1px solid #ffc8c3}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:760px;background:#fff}
+th,td{padding:9px;border-bottom:1px solid var(--line);text-align:right;font-size:12px}
+th{background:#f8fafc;color:var(--brand2)}
+.dayhead{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;background:#f8fafc;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+.teamblock{border:1px solid #dce5ec;border-radius:12px;padding:10px;margin-bottom:10px;background:#fff}
+.teamtitle{font-weight:700;color:var(--brand2);margin-bottom:8px}
+.taskgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.taskline{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
+.taskcheck{display:flex;align-items:center;gap:7px;margin:0;color:var(--text);font-size:12px}
+.taskcheck input{width:auto}
+.autofield{min-height:43px;border:1px solid #d7dfe8;border-radius:10px;background:#f8fafc;padding:7px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.pill{display:inline-block;background:#e9f4f8;color:#104f60;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:700}
+.pill.leave{background:#fff1ef;color:#9e241b}
+.assignment{padding:8px 9px;border:1px solid var(--line);background:#fafcfd;border-radius:10px;margin:6px 0;font-size:12px}
+.missing{border:1px dashed #e4a73c;background:#fffaf0;padding:8px;border-radius:10px;margin:5px 0}
+.resultTeam{border-right:4px solid var(--brand);padding-right:9px;margin:10px 0 14px}
+.codebox{direction:ltr;text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{padding:10px;border-radius:12px;background:var(--soft);text-align:center}.stat b{display:block;font-size:19px;color:var(--brand2)}
+.navday{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.hidden{display:none!important}
+.tag{display:inline-block;padding:4px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
+.missing summary{cursor:pointer;font-weight:700;color:#7b4a00;list-style:none}
+.missing summary::-webkit-details-marker{display:none}
+.missing summary:after{content:"  ▾";font-size:11px}
+.missing[open] summary:after{content:"  ▴"}
+.missing select{margin-top:8px}
+@media(max-width:760px){
+ .c8,.c6,.c4,.c3,.c2{grid-column:span 12}
+ .taskgrid{grid-template-columns:1fr}
+ .stats{grid-template-columns:1fr 1fr}
+ header{position:relative}
+ .navday{grid-template-columns:1fr 1fr}.navday select{grid-column:1/-1;grid-row:1}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="headerRow">
+    <div>
+      <h1>منظم جدول الجراحة — PWA</h1>
+      <p>نسخة PWA لـ Android وiPhone • تعمل من الشاشة الرئيسية • تحديثات عبر GitHub Pages.</p>
+    </div>
+    <button id="installAppBtn" class="installBtn">تثبيت التطبيق</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-page="data">١. البيانات</button>
+    <button class="tab" data-page="members">٢. الفرق والأعضاء</button>
+    <button class="tab" data-page="operations">٣. العمليات الثابتة</button>
+    <button class="tab" data-page="extra">٤. الطارئ والإضافي</button>
+    <button class="tab" data-page="clinics">٥. العيادات</button>
+    <button class="tab" data-page="leave">٦. الإجازات</button>
+    <button class="tab" data-page="result">٧. إعداد الفترة والتوزيع</button>
+    <button class="tab" data-page="whatsapp">٨. واتساب</button>
+  </div>
+  <section id="data" class="page active">
+    <div class="card">
+      <h2>حالة التطبيق</h2>
+      <div id="pwaStatus" class="small">جاري التحقق من وضع التثبيت…</div>
+    </div>
+    <div class="card">
+      <h2>نقل بيانات الشهر بين البرنامج وChatGPT</h2>
+      <div id="platformHint" class="small"></div>
+      <div class="grid" style="margin-top:12px">
+        <div class="c12">
+          <div class="ok"><b>الخطوة 1:</b> اختر PDF المناوبات وPDF الفرق، ثم شاركهما إلى ChatGPT.</div>
+        </div>
+        <div class="c6"><label>On-call Rota PDF</label><input type="file" id="shareRotaPdf" accept=".pdf,application/pdf"></div>
+        <div class="c6"><label>Teams Distribution PDF</label><input type="file" id="shareTeamsPdf" accept=".pdf,application/pdf"></div>
+        <div class="c6"><button class="btn good" id="shareToChatGPTBtn">مشاركة الملفين إلى ChatGPT</button></div>
+        <div class="c6"><button class="btn secondary" id="copyChatPromptBtn">نسخ تعليمات ChatGPT</button></div>
+      </div>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-weight:700">عرض التعليمات الجاهزة</summary>
+        <textarea id="chatSharePrompt" class="codebox" readonly style="min-height:230px;direction:ltr;text-align:left;margin-top:8px"></textarea>
+      </details>
+      <div id="shareToChatStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>استيراد نتيجة ChatGPT</h2>
+      <div class="small">
+        <b>الخطوة 2:</b> بعد أن يقرأ ChatGPT الملفين، اطلب منه الملف
+        <b>Surgery_Chat_Import_YYYY_MM.txt</b>. احفظه في Files على iPhone أو Downloads/Files على Android،
+        ثم اختره هنا. بمجرد اختيار الملف سيطبقه البرنامج تلقائيًا.
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div class="c8">
+          <label>ملف النتيجة من ChatGPT (.txt أو .json)</label>
+          <input type="file" id="chatImportFile" accept=".txt,.json,text/plain,application/json">
+        </div>
+        <div class="c4" style="display:flex;align-items:end">
+          <button class="btn good" id="applyChatFileBtn">اختيار/تطبيق الملف</button>
+        </div>
+      </div>
+      <div id="chatImportStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>النسخة الاحتياطية</h2>
+      <div class="small">
+        هذه مختلفة عن ملف ChatGPT؛ تحفظ إعداداتك الخاصة داخل البرنامج مثل العمليات والعيادات والإجازات والغرف.
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div class="c4"><button class="btn" id="exportBackupBtn">حفظ نسخة احتياطية</button></div>
+        <div class="c4"><input type="file" id="backupFile" accept=".json,.txt,application/json,text/plain"></div>
+        <div class="c4"><button class="btn secondary" id="importBackupBtn">استعادة النسخة</button></div>
+        <div class="c12"><button class="btn danger" id="clearBtn">مسح بيانات البرنامج</button></div>
+      </div>
+      <div id="backupStatus"></div>
+    </div>
+  </section>
+
+  <section id="members" class="page">
+    <div class="card">
+      <h2>إضافة / استكمال طبيب يدويًا</h2>
+      <div class="grid">
+        <div class="c3"><label>الاسم</label><input id="newName" placeholder="Dr ..."></div>
+        <div class="c3"><label>الجوال</label><input id="newPhone" inputmode="tel"></div>
+        <div class="c3"><label>الدرجة</label>
+          <select id="newGrade">
+            <option value="consultant">Consultant</option>
+            <option value="specialist">Specialist</option>
+            <option value="resident">Resident</option>
+            <option value="program_resident">Program Resident</option>
+            <option value="intern">Intern</option>
+          </select>
+        </div>
+        <div class="c3"><label>الفريق</label>
+          <select id="newTeam"><option value="">بدون فريق</option><option value="1">Team A</option><option value="2">Team B</option><option value="3">Team C</option></select>
+        </div>
+        <div class="c12"><button class="btn" id="addMemberBtn">إضافة</button></div>
+      </div>
+      <div class="small" style="margin-top:8px"><b>الاستشاريون لا يدخلون التوزيع الآلي.</b> الامتياز يُضاف يدويًا إذا لم يكن في ملفات القسم.</div>
+    </div>
+    <div class="card"><h2>الأسماء المعتمدة</h2><div id="membersTable"></div></div>
+  </section>
+
+  <section id="operations" class="page">
+    <div class="card">
+      <h2>غرف العمليات</h2>
+      <div class="grid">
+        <div class="c4"><label>اسم الغرفة</label><input id="newORRoomName" placeholder="مثال: OR 3 أو DSU 3"></div>
+        <div class="c4"><label>النوع</label><select id="newORRoomKind"><option value="OR">OR</option><option value="DSU">DSU</option></select></div>
+        <div class="c4" style="display:flex;align-items:end"><button class="btn" id="addORRoomBtn">إضافة غرفة</button></div>
+      </div>
+      <div id="orRoomsList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Fixed Weekly OR Schedule</h2>
+      <div class="small">المواعيد أدناه محفوظة كجدول أسبوعي ثابت. يمكن تغيير اليوم أو الفترة أو الغرفة الافتراضية، ثم يعاد توليد الفترة الحالية.</div>
+      <div id="fixedORTable" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="navday">
+        <button class="btn secondary" id="orPrev">اليوم السابق</button>
+        <select id="orDate"></select>
+        <button class="btn secondary" id="orNext">اليوم التالي</button>
+      </div>
+      <div class="small" style="margin-top:8px">هنا يمكن تغيير الغرفة أو الاستشاري لهذا التاريخ فقط. عمليات Team C يومي الثلاثاء والأربعاء مشتركة؛ اختر الاستشاري الفعلي لذلك اليوم.</div>
+      <div id="fixedORDayView" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="c6"><label>سياسة الامتياز في OR / DSU</label>
+          <select id="internPolicy"><option value="optional">يضاف إذا توفر</option><option value="required">مطلوب</option><option value="off">لا يضاف</option></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="extra" class="page">
+    <div class="card">
+      <h2>Emergency / Additional OR</h2>
+      <div class="small">عند إضافة عملية طارئة أو إضافية يعاد توليد <b>الأسبوع المتأثر فقط</b>. أي نقص يبقى ظاهرًا ولا تتم الاستعانة بفريق آخر تلقائيًا.</div>
+      <div class="grid" style="margin-top:10px">
+        <div class="c3"><label>التاريخ</label><select id="extraORDate"></select></div>
+        <div class="c3"><label>النوع</label><select id="extraORType"><option value="emergency">Emergency OR</option><option value="additional">Additional OR</option></select></div>
+        <div class="c3"><label>الفريق</label><select id="extraORTeam"><option value="1">Team A</option><option value="2">Team B</option><option value="3">Team C</option></select></div>
+        <div class="c3"><label>الفترة</label><select id="extraORPeriod"><option value="full">Full day</option><option value="am">AM</option><option value="pm">PM</option></select></div>
+        <div class="c4"><label>الاستشاري</label><select id="extraORConsultant"></select></div>
+        <div class="c4"><label>الغرفة</label><select id="extraORRoom"></select></div>
+        <div class="c4"><label>ملاحظة</label><input id="extraORNote" placeholder="اختياري"></div>
+        <div class="c12"><button class="btn good" id="addExtraORBtn">إضافة وإعادة توليد الأسبوع</button></div>
+      </div>
+    </div>
+    <div class="card"><h2>العمليات الطارئة والإضافية</h2><div id="extraORTable"></div></div>
+  </section>
+
+  <section id="clinics" class="page">
+    <div class="card">
+      <h2>Fixed Weekly Clinics</h2>
+      <div class="small">هذا هو الجدول الثابت الذي أعطيته لي. Triage وBreast بدون اسم استشاري كما طلبت. يمكن تعديل اليوم/الفترة/الفريق/الاستشاري.</div>
+      <div id="fixedClinicTable" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Additional / Date-specific Clinic</h2>
+      <div class="grid">
+        <div class="c3"><label>التاريخ</label><select id="clinicDate"></select></div>
+        <div class="c3"><label>الفريق</label><select id="clinicTeam"><option value="1">Team A</option><option value="2">Team B</option><option value="3">Team C</option></select></div>
+        <div class="c3"><label>نوع العيادة</label>
+          <select id="clinicType"><option value="general">General Clinic</option><option value="virtual">Virtual Clinic</option><option value="triage">Triage Clinic</option><option value="breast">Breast Clinic</option><option value="diabetic">Diabetic Foot Clinic</option></select>
+        </div>
+        <div class="c3"><label>الفترة</label><select id="clinicPeriod"><option value="am">AM</option><option value="pm">PM</option><option value="full">Full day</option></select></div>
+        <div class="c6"><label>الاستشاري — اختياري</label><select id="clinicConsultant"></select></div>
+        <div class="c6" style="display:flex;align-items:end"><button class="btn" id="addClinicBtn">إضافة العيادة</button></div>
+      </div>
+    </div>
+    <div class="card"><h2>العيادات الإضافية في الفترة الحالية</h2><div id="clinicTable"></div></div>
+  </section>
+
+  <section id="leave" class="page">
+    <div class="card">
+      <h2>إضافة إجازة</h2>
+      <div class="grid">
+        <div class="c3"><label>الطبيب</label><select id="leaveMember"></select></div>
+        <div class="c2"><label>نوع الإجازة</label><select id="leaveType"><option value="planned">Planned</option><option value="additional">Additional</option><option value="emergency">Emergency</option></select></div>
+        <div class="c2"><label>من</label><input type="date" id="leaveFrom"></div>
+        <div class="c2"><label>إلى</label><input type="date" id="leaveTo"></div>
+        <div class="c3"><label>السبب</label><input id="leaveReason" placeholder="اختياري"></div>
+        <div class="c12"><button class="btn" id="addLeaveBtn">إضافة الإجازة</button></div>
+      </div>
+      <div class="small" style="margin-top:8px">الإجازة Additional أو Emergency تعيد توليد الأسبوع/الأسابيع المتأثرة. النقص يظهر ولا يُملأ تلقائيًا من فريق آخر.</div>
+    </div>
+    <div class="card"><h2>الإجازات</h2><div id="leaveTable"></div></div>
+  </section>
+
+  <section id="result" class="page">
+    <div class="card" id="periodStatusCard">
+      <h2>إعداد الفترة والتوزيع</h2>
+      <div id="periodStatusText" class="small"></div>
+      <div class="grid" style="margin-top:10px">
+        <div class="c4">
+          <label>الفترة</label>
+          <select id="periodMode">
+            <option value="weekly">أسبوعي</option>
+            <option value="monthly">شهري</option>
+          </select>
+        </div>
+        <div class="c4" id="weekStartBox"><label>بداية الأسبوع</label><input type="date" id="weekStart"></div>
+        <div class="c4 hidden" id="monthBox"><label>الشهر</label><input type="month" id="monthValue"></div>
+        <div class="c6"><label>مقيم ER للفترة — اختياري</label><select id="weeklyER"></select></div>
+        <div class="c6" style="display:flex;align-items:end"><button class="btn good" id="generateBtn">توليد الجدول</button></div>
+      </div>
+      <div class="small" style="margin-top:8px">الجمعة والسبت خارج التوزيع، مع الاحتفاظ بمناوباتهما لحساب Post-call.</div>
+    </div>
+
+    <div class="card">
+      <h2>مراجعة يوم الإعداد</h2>
+      <div class="navday">
+        <button class="btn secondary" id="setupPrev">اليوم السابق</button>
+        <select id="setupDate"></select>
+        <button class="btn secondary" id="setupNext">اليوم التالي</button>
+      </div>
+      <div id="periodDayView" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>التوزيع الناتج</h2>
+      <div class="navday">
+        <button class="btn secondary" id="resultPrev">اليوم السابق</button>
+        <select id="resultDate"></select>
+        <button class="btn secondary" id="resultNext">اليوم التالي</button>
+      </div>
+    </div>
+    <div class="card"><div id="stats" class="stats"></div></div>
+    <div id="resultDayView"></div>
+  </section>
+
+  <section id="whatsapp" class="page">
+    <div class="card">
+      <h2>رسالة واتساب</h2>
+      <div class="grid">
+        <div class="c4"><label>التاريخ</label><select id="waDate"></select></div>
+        <div class="c4"><label>الفريق</label><select id="waTeam"><option value="1">Team A</option><option value="2">Team B</option><option value="3">Team C</option></select></div>
+        <div class="c4" style="display:flex;align-items:end"><button class="btn" id="copyWaBtn">نسخ الرسالة</button></div>
+        <div class="c12"><textarea id="waText" style="min-height:340px;direction:ltr;text-align:left"></textarea></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const TEAM_NAMES={'1':'Team A','2':'Team B','3':'Team C'};
+const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const WORKS=[
+ {id:'round',label:'Round / Ward — AM + PM',period:'full',slots:[]}
+];
+const DEFAULT_OR_ROOMS=[
+ {id:'or1',name:'OR 1',kind:'OR',locked:true},
+ {id:'or2',name:'OR 2',kind:'OR',locked:true},
+ {id:'dsu1',name:'DSU 1',kind:'DSU',locked:true},
+ {id:'dsu2',name:'DSU 2',kind:'DSU',locked:true}
+];
+const CLINIC_TYPES={
+ general:{label:'General Clinic',slots:['specialist','resident']},
+ virtual:{label:'Virtual Clinic',slots:['resident']},
+ triage:{label:'Triage Clinic',slots:['specialist','resident']},
+ breast:{label:'Breast Clinic',slots:['resident']},
+ diabetic:{label:'Diabetic Foot Clinic',slots:['specialist']}
+};
+const DEFAULT_FIXED_ORS=[
+ {id:'fo_sun_tayseer',dow:0,team:'1',consultantName:'DR.TAYSEER',candidateNames:[],period:'full',roomId:'',enabled:true,label:'Fixed OR'},
+ {id:'fo_sun_osama',dow:0,team:'1',consultantName:'DR.OSAMA',candidateNames:[],period:'full',roomId:'',enabled:true,label:'Fixed OR'},
+ {id:'fo_sun_raied',dow:0,team:'2',consultantName:'DR.RAIED',candidateNames:[],period:'full',roomId:'',enabled:true,label:'Fixed OR'},
+ {id:'fo_mon_hanan',dow:1,team:'2',consultantName:'DR.HANAN',candidateNames:[],period:'full',roomId:'',enabled:true,label:'Fixed OR'},
+ {id:'fo_tue_teamc',dow:2,team:'3',consultantName:'',candidateNames:['DR.AMR','DR.AMEERA','DR.FOZAN','DR.HAMED'],period:'full',roomId:'',enabled:true,label:'Team C Shared OR'},
+ {id:'fo_wed_teamc',dow:3,team:'3',consultantName:'',candidateNames:['DR.AMR','DR.AMEERA','DR.FOZAN','DR.HAMED'],period:'full',roomId:'',enabled:true,label:'Team C Shared OR'},
+ {id:'fo_thu_burghash',dow:4,team:'1',consultantName:'DR.BURGHASH',candidateNames:[],period:'full',roomId:'',enabled:true,label:'Fixed OR'}
+];
+const DEFAULT_FIXED_CLINICS=[
+ {id:'fc_sun_burghash',dow:0,team:'1',type:'general',period:'am',consultantName:'DR.BURGHASH',monthOnly:'',enabled:true},
+ {id:'fc_sun_hamed',dow:0,team:'3',type:'general',period:'am',consultantName:'DR.HAMED',monthOnly:'',enabled:true},
+ {id:'fc_sun_virtual_hanan',dow:0,team:'2',type:'virtual',period:'am',consultantName:'DR.HANAN',monthOnly:'',enabled:true},
+ {id:'fc_sun_fozan',dow:0,team:'3',type:'general',period:'pm',consultantName:'DR.FOZAN',monthOnly:'',enabled:true},
+ {id:'fc_sun_triage',dow:0,team:'',type:'triage',period:'pm',consultantName:'',monthOnly:'',enabled:true},
+ {id:'fc_mon_raied',dow:1,team:'2',type:'general',period:'am',consultantName:'DR.RAIED',monthOnly:'',enabled:true},
+ {id:'fc_mon_breast',dow:1,team:'',type:'breast',period:'full',consultantName:'',monthOnly:'2026-09',enabled:true},
+ {id:'fc_mon_osama',dow:1,team:'1',type:'general',period:'pm',consultantName:'DR.OSAMA',monthOnly:'',enabled:true},
+ {id:'fc_mon_amr',dow:1,team:'3',type:'general',period:'pm',consultantName:'DR.AMR',monthOnly:'',enabled:true},
+ {id:'fc_mon_virtual_tayseer',dow:1,team:'1',type:'virtual',period:'pm',consultantName:'DR.TAYSEER',monthOnly:'',enabled:true},
+ {id:'fc_tue_hanan',dow:2,team:'2',type:'general',period:'am',consultantName:'DR.HANAN',monthOnly:'',enabled:true},
+ {id:'fc_tue_triage',dow:2,team:'',type:'triage',period:'am',consultantName:'',monthOnly:'',enabled:true},
+ {id:'fc_tue_virtual_osama',dow:2,team:'1',type:'virtual',period:'am',consultantName:'DR.OSAMA',monthOnly:'',enabled:true},
+ {id:'fc_tue_alkaabna',dow:2,team:'2',type:'general',period:'pm',consultantName:'DR.M.ALKAABNA',monthOnly:'',enabled:true},
+ {id:'fc_wed_tayseer',dow:3,team:'1',type:'general',period:'am',consultantName:'DR.TAYSEER',monthOnly:'',enabled:true},
+ {id:'fc_wed_ameera',dow:3,team:'3',type:'general',period:'am',consultantName:'DR.AMEERA',monthOnly:'',enabled:true},
+ {id:'fc_wed_virtual_burghash',dow:3,team:'1',type:'virtual',period:'am',consultantName:'DR.BURGHASH',monthOnly:'',enabled:true},
+ {id:'fc_wed_breast',dow:3,team:'',type:'breast',period:'full',consultantName:'',monthOnly:'2026-09',enabled:true},
+ {id:'fc_wed_burghash_pm',dow:3,team:'1',type:'general',period:'pm',consultantName:'DR.BURGHASH',monthOnly:'',enabled:true}
+];
+const $=id=>document.getElementById(id);
+function freshState(){
+ return {periodMode:'weekly',weekStart:'',monthValue:'',members:[],rota:[],phoneDirectory:[],workConfig:{},orRooms:DEFAULT_OR_ROOMS.map(x=>({...x})),orConfig:{},fixedORs:DEFAULT_FIXED_ORS.map(x=>({...x,candidateNames:[...(x.candidateNames||[])]})),fixedOROverrides:{},extraORs:[],fixedClinics:DEFAULT_FIXED_CLINICS.map(x=>({...x})),clinics:[],leaves:[],weeklyER:'',internPolicy:'optional',schedule:{},dutyText:'',teamsText:''};
+}
+const APP_STORAGE_KEY='surgerySchedulerData';
+let state;
+let storageNotice='';
+
+function cleanupLegacySchedulerStorage(){
+ try{
+   const keys=[];
+   for(let i=0;i<localStorage.length;i++){
+     const k=localStorage.key(i);
+     if(k && /^surgerySchedulerV\d+$/.test(k))keys.push(k);
+   }
+   keys.forEach(k=>localStorage.removeItem(k));
+   return keys.length;
+ }catch(e){return 0}
+}
+
+function readLatestLegacyState(){
+ const candidates=['surgerySchedulerV18','surgerySchedulerV17','surgerySchedulerV16','surgerySchedulerV15','surgerySchedulerV14'];
+ for(const k of candidates){
+   try{
+     const raw=localStorage.getItem(k);
+     if(raw)return JSON.parse(raw);
+   }catch(e){}
+ }
+ return null;
+}
+
+try{
+ state=JSON.parse(localStorage.getItem(APP_STORAGE_KEY)||'null');
+ if(!state){
+   const old=readLatestLegacyState();
+   state=old?{...freshState(),...old}:freshState();
+ }
+}catch(e){state=freshState()}
+
+function ensureState(){
+ const f=freshState();
+ for(const k of Object.keys(f))if(state[k]===undefined)state[k]=f[k];
+}
+ensureState();
+state.leaves=(state.leaves||[]).map(l=>({...l,type:l.type||'planned'}));
+
+// V19 uses one permanent storage key. Remove V1..V18 copies after migration
+// so they cannot fill the browser's shared localStorage quota again.
+const removedLegacyCopies=cleanupLegacySchedulerStorage();
+if(removedLegacyCopies)storageNotice=`تم تنظيف ${removedLegacyCopies} نسخة تخزين قديمة لتوفير المساحة.`;
+
+function persistableState(includeSchedule=true){
+ const out={...state,dutyText:'',teamsText:''};
+ if(!includeSchedule)out.schedule={};
+ return out;
+}
+
+function save(){
+ const full=JSON.stringify(persistableState(true));
+ try{
+   localStorage.setItem(APP_STORAGE_KEY,full);
+   return true;
+ }catch(e){
+   // First recovery: remove any legacy keys that may have been created by an older file.
+   cleanupLegacySchedulerStorage();
+   try{
+     localStorage.setItem(APP_STORAGE_KEY,full);
+     storageNotice='تم تنظيف التخزين القديم تلقائيًا وحفظ البيانات.';
+     return true;
+   }catch(e2){
+     // Last-resort recovery: generated schedule can always be rebuilt.
+     // Preserve all source data/configuration but omit the generated result.
+     try{
+       localStorage.setItem(APP_STORAGE_KEY,JSON.stringify(persistableState(false)));
+       storageNotice='تم حفظ البيانات الأساسية، لكن التوزيع المولد لم يُحفظ بسبب حد مساحة المتصفح. يمكن توليده من جديد.';
+       return true;
+     }catch(e3){
+       throw new Error('مساحة التخزين المحلية ممتلئة حتى بعد تنظيف النسخ القديمة.');
+     }
+   }
+ }
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function uid(p='x'){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function dateAdd(iso,n){if(!iso)return'';const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+function dateLabel(iso){if(!iso)return'';const d=new Date(iso+'T12:00:00');return `${DOW[d.getDay()]} — ${iso}`}
+function isDistributionDay(iso){
+ if(!iso)return false;
+ const d=new Date(iso+'T12:00:00');
+ const dow=d.getDay(); // 0 Sunday ... 5 Friday, 6 Saturday
+ return dow!==5 && dow!==6;
+}
+function periodDates(){
+ let dates=[];
+ if(state.periodMode==='monthly'){
+   if(!state.monthValue)return[];
+   const [y,m]=state.monthValue.split('-').map(Number),last=new Date(y,m,0).getDate();
+   dates=Array.from({length:last},(_,i)=>`${y}-${String(m).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`);
+ }else{
+   if(!state.weekStart)return[];
+   dates=Array.from({length:7},(_,i)=>dateAdd(state.weekStart,i));
+ }
+ return dates.filter(isDistributionDay);
+}
+function ensureConfigs(){
+ for(const date of periodDates()){
+   if(!state.workConfig[date])state.workConfig[date]={};
+   if(!state.orConfig[date])state.orConfig[date]={};
+   for(const team of ['1','2','3']){
+     if(!state.workConfig[date][team])state.workConfig[date][team]={round:true};
+     if(state.workConfig[date][team].round===undefined)state.workConfig[date][team].round=true;
+
+     if(!state.orConfig[date][team])state.orConfig[date][team]={rooms:{},urgent:{open:false,consultantId:''}};
+     if(!state.orConfig[date][team].rooms)state.orConfig[date][team].rooms={};
+     if(!state.orConfig[date][team].urgent)state.orConfig[date][team].urgent={open:false,consultantId:''};
+     for(const room of state.orRooms){
+       const cur=state.orConfig[date][team].rooms[room.id];
+       if(cur===undefined)state.orConfig[date][team].rooms[room.id]={open:false,consultantId:''};
+       else if(typeof cur==='boolean')state.orConfig[date][team].rooms[room.id]={open:cur,consultantId:''};
+       else{
+         if(cur.open===undefined)cur.open=false;
+         if(cur.consultantId===undefined)cur.consultantId='';
+       }
+     }
+   }
+ }
+}
+function gradeLabel(g){return ({consultant:'Consultant',department_head:'Department Head',specialist:'Specialist',resident:'Resident',program_resident:'Program Resident',intern:'Intern'}[g]||g)}
+function roleOf(m){
+ if(m.grade==='consultant'||m.grade==='department_head')return'consultant';
+ if(m.grade==='specialist')return'specialist';
+ if(m.grade==='intern')return'intern';
+ return'resident';
+}
+function isConsultant(m){return roleOf(m)==='consultant'}
+function byId(id){return state.members.find(m=>m.id===id)}
+function onLeave(id,date){return !!id&&!!date&&state.leaves.some(l=>String(l.memberId)===String(id)&&date>=String(l.from||'')&&date<=String(l.to||''))}
+function norm(v){return String(v||'').toUpperCase().replace(/^DR\.?/,'').replace(/[^A-Z0-9]/g,'')}
+const ALIAS={TAREQ:'TAREK',MALRASHEDI:'MALRASHIDI',ALRASHEDI:'MALRASHIDI',ASD:'ASAD',RAED:'RAIED',ALKHRESI:'MALKHRESI',ALRAYES:'MALRAYES',ALKAABNA:'MALKAABNA',TAYSER:'TAYSEER'};
+function key(v){const k=norm(v);return ALIAS[k]||k}
+function tokens(v){return String(v||'').toUpperCase().replace(/^DR\.?/,'').replace(/[()]/g,' ').split(/[\s.]+/).filter(x=>x.length>1&&!['GS','R1','ORTHO','SURGERY','SPECIALIST','CONSULTANT','RESIDENT'].includes(x))}
+function levenshtein(a,b){
+ const dp=Array(b.length+1).fill(0).map((_,j)=>j);
+ for(let i=1;i<=a.length;i++){let prev=dp[0];dp[0]=i;for(let j=1;j<=b.length;j++){const tmp=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=tmp}}
+ return dp[b.length];
+}
+function fuzzyNameMatch(a,b){
+ const A=tokens(a),B=tokens(b);
+ for(const x of A)for(const y of B){if(x===y)return true;if(x.length>=5&&y.length>=5&&levenshtein(x,y)<=1)return true}
+ return false;
+}
+function resolveRota(raw){
+ const target=key(raw);if(!target)return null;
+ let hits=state.members.filter(m=>{const k=key(m.name);return k===target||(k.startsWith('M')&&k.slice(1)===target)||(target.startsWith('M')&&target.slice(1)===k)});
+ if(hits.length===1)return hits[0];
+ hits=state.members.filter(m=>fuzzyNameMatch(m.name,raw));
+ return hits.length===1?hits[0]:null;
+}
+function rowAt(date){return state.rota.find(r=>r.date===date)||null}
+function callInfo(team,date){
+ const r=rowAt(date),p=rowAt(dateAdd(date,-1));
+ const ft=arr=>arr.map(resolveRota).filter(Boolean).filter(m=>m.team===team&&!onLeave(m.id,date));
+ if(!r)return{date,row:null,morning:[],night:[],post:[],third:null};
+ const third=resolveRota(r.consultant);
+ return{date,row:r,morning:ft([r.residentAM,r.specialistAM]),night:ft([r.residentNight,r.specialistNight]),post:p?ft([p.residentNight,p.specialistNight]):[],third:(third&&third.team===team&&!onLeave(third.id,date))?third:null};
+}
+function conflict(a,b){if(a==='full'||b==='full')return true;return a===b}
+function isCallRestricted(member,date,period,activityType){
+ const c=callInfo(member.team,date),id=member.id;
+ if(c.post.some(x=>x.id===id))return true;
+ const morning=c.morning.some(x=>x.id===id),night=c.night.some(x=>x.id===id);
+ if(period==='pm'||period==='full')return morning||night;
+ if(activityType==='round'||activityType==='urgent_or')return false;
+ if(morning)return true;
+ return false; // Night on-call may work AM until 12.
+}
+function assignedElsewhere(memberId,date,period,ignoreKey=''){
+ for(const team of ['1','2','3']){
+   const day=state.schedule?.[date]?.[team];if(!day)continue;
+   for(const a of day.activities||[]){
+     if(a.key===ignoreKey)continue;
+     if(!conflict(period,a.period))continue;
+     if((a.members||[]).includes(memberId))return true;
+     if((a.extraMembers||[]).includes(memberId))return true;
+     if((a.slots||[]).some(s=>s.memberId===memberId))return true;
+   }
+ }
+ return false;
+}
+function available(m,date,period,activityType,ignoreKey=''){
+ if(isConsultant(m)||onLeave(m.id,date)||m.id===state.weeklyER)return false;
+ if(isCallRestricted(m,date,period,activityType))return false;
+ if(assignedElsewhere(m.id,date,period,ignoreKey))return false;
+ return true;
+}
+function consultantsForDate(date,selected=''){
+ const arr=state.members.filter(isConsultant).filter(m=>!onLeave(m.id,date)).sort((a,b)=>a.name.localeCompare(b.name));
+ return `<option value="">— بدون اسم —</option>`+arr.map(m=>`<option value="${m.id}" ${selected===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
+}
+
+function showPage(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+ if(id==='members')renderMembers();
+ if(id==='operations')renderOperations();
+ if(id==='extra')renderExtraORs();
+ if(id==='clinics')renderClinics();
+ if(id==='leave')renderLeaves();
+ if(id==='result'){renderPeriod();renderResult();}
+ if(id==='whatsapp')renderWhatsApp();
+ window.scrollTo(0,0);
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+
+function inferPeriodFromRota(force=false){
+ if(!state.rota?.length)return false;
+ const dates=state.rota.map(r=>r.date).filter(Boolean).sort();
+ if(!dates.length)return false;
+
+ const first=dates[0];
+ const month=first.slice(0,7);
+
+ // If the user already explicitly selected a period, preserve it unless forced.
+ if(force || (!state.monthValue && !state.weekStart)){
+   state.monthValue=month;
+   state.periodMode='monthly';
+   state.weekStart='';
+   save();
+   return true;
+ }
+
+ // Repair a stale period that has no overlap with the imported rota.
+ const current=periodDates();
+ const overlap=current.some(d=>dates.includes(d));
+ if(force || !overlap){
+   state.monthValue=month;
+   state.periodMode='monthly';
+   state.weekStart='';
+   save();
+   return true;
+ }
+ return false;
+}
+function firstAvailableDate(){
+ const dates=periodDates();
+ if(dates.length)return dates[0];
+ if(state.rota?.length){
+   inferPeriodFromRota(true);
+   const d2=periodDates();
+   return d2[0]||'';
+ }
+ return '';
+}
+function renderPeriodControls(){
+ $('periodMode').value=state.periodMode;
+ $('weekStart').value=state.weekStart||'';
+ $('monthValue').value=state.monthValue||'';
+ $('weekStartBox').classList.toggle('hidden',state.periodMode!=='weekly');
+ $('monthBox').classList.toggle('hidden',state.periodMode!=='monthly');
+}
+function updatePeriodMode(){
+ state.periodMode=$('periodMode').value;save();ensureConfigs();syncDateSelectors();renderPeriod();renderClinics();renderResult();
+}
+function updatePeriodValue(){
+ state.weekStart=$('weekStart').value;state.monthValue=$('monthValue').value;ensureConfigs();save();syncDateSelectors();renderPeriod();renderClinics();renderLeaves();renderResult();
+}
+function syncDateSelect(id,current=''){
+ const el=$(id);if(!el)return;
+ let dates=periodDates();
+ if(!dates.length && state.rota?.length){
+   inferPeriodFromRota(true);
+   renderPeriodControls();
+   dates=periodDates();
+ }
+ if(!dates.length){
+   el.innerHTML='<option value="">— حدد الفترة أو استورد Rota —</option>';
+   el.value='';
+   return;
+ }
+ const keep=dates.includes(current)?current:dates[0];
+ el.innerHTML=dates.map(d=>`<option value="${d}" ${d===keep?'selected':''}>${dateLabel(d)}</option>`).join('');
+ el.value=keep;
+}
+function syncDateSelectors(){
+ const a=$('setupDate')?.value,b=$('resultDate')?.value,c=$('clinicDate')?.value,d=$('waDate')?.value,e=$('orDate')?.value,f=$('extraORDate')?.value;
+ syncDateSelect('setupDate',a);syncDateSelect('resultDate',b);syncDateSelect('clinicDate',c);syncDateSelect('waDate',d);syncDateSelect('orDate',e);syncDateSelect('extraORDate',f);
+}
+function moveDate(selectId,delta,callback){
+ const el=$(selectId),dates=periodDates(),i=dates.indexOf(el.value);if(i<0)return;
+ const n=Math.max(0,Math.min(dates.length-1,i+delta));el.value=dates[n];callback();
+}
+
+function renderMembers(){
+ const rows=state.members.slice().sort((a,b)=>(a.team||'9').localeCompare(b.team||'9')||a.name.localeCompare(b.name)).map(m=>`<tr>
+  <td>${esc(m.name)}</td><td>${esc(m.phone||'')}</td><td>${gradeLabel(m.grade)}</td><td>${m.team?TEAM_NAMES[m.team]:'—'}</td>
+  <td>${isConsultant(m)?'<span class="tag">خارج التوزيع</span>':''}</td>
+  <td><button class="btn danger" onclick="removeMember('${m.id}')">حذف</button></td>
+ </tr>`).join('');
+ $('membersTable').innerHTML=rows?`<div class="tablewrap"><table><thead><tr><th>الاسم</th><th>الجوال</th><th>الدرجة</th><th>الفريق</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="small">لم تُحمّل أسماء بعد.</div>';
+ renderMemberSelectors();
+}
+function addMember(){
+ const name=$('newName').value.trim();if(!name)return alert('اكتب الاسم');
+ state.members.push({id:uid('m'),name,phone:$('newPhone').value.trim(),grade:$('newGrade').value,team:$('newTeam').value});
+ save();$('newName').value='';$('newPhone').value='';renderMembers();renderClinics();renderLeaves();renderPeriod();
+}
+function removeMember(id){
+ state.members=state.members.filter(m=>m.id!==id);state.leaves=state.leaves.filter(l=>l.memberId!==id);state.clinics.forEach(c=>{if(c.consultantId===id)c.consultantId=''});save();syncAll();
+}
+function renderMemberSelectors(){
+ const residents=state.members.filter(m=>roleOf(m)==='resident');
+ $('weeklyER').innerHTML='<option value="">— لا يوجد —</option>'+residents.map(m=>`<option value="${m.id}" ${state.weeklyER===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
+ $('leaveMember').innerHTML='<option value="">— اختر —</option>'+state.members.map(m=>`<option value="${m.id}">${esc(m.name)}${m.team?' — '+TEAM_NAMES[m.team]:''}</option>`).join('');
+ $('internPolicy').value=state.internPolicy||'optional';
+}
+
+function setWork(date,team,id,on){ensureConfigs();state.workConfig[date][team][id]=on;save();renderPeriod()}
+function callField(arr){return arr.length?arr.map(m=>`<span class="pill">${esc(m.name)}</span>`).join(''):'<span class="small">لا يوجد عضو من هذا الفريق</span>'}
+function renderPeriod(){
+ renderMemberSelectors();ensureConfigs();syncDateSelect('setupDate',$('setupDate')?.value);
+ const pd=periodDates();
+ if($('periodStatusText'))$('periodStatusText').innerHTML=pd.length
+   ?`<b>${state.periodMode==='monthly'?'شهري':'أسبوعي'}</b> — ${state.periodMode==='monthly'?(state.monthValue||''):(state.weekStart||'')} — ${pd.length} يوم توزيع (الأحد–الخميس) — Rota محمل: ${state.rota.length} يوم.`
+   :'لا توجد فترة فعالة بعد. استورد Rota من ChatGPT أو حدد الفترة من صفحة البيانات.';
+ const date=$('setupDate').value,dates=periodDates();
+ if(!date){$('periodDayView').innerHTML='<div class="card warn">حدد الفترة أولاً من صفحة البيانات.</div>';return}
+ $('generateBtn').textContent=state.periodMode==='monthly'?'توليد الجدول الشهري':'توليد الجدول الأسبوعي';
+ $('periodDayView').innerHTML=`<div class="dayhead"><b>${dateLabel(date)}</b><span class="small">العمليات الثابتة من صفحة العمليات، والطارئ/الإضافي من صفحته، والعيادات من صفحة العيادات</span></div>`+
+ ['1','2','3'].map(team=>{
+   const cfg=state.workConfig[date][team],c=callInfo(team,date);
+   return `<div class="teamblock"><div class="teamtitle">${TEAM_NAMES[team]}</div>
+     <div class="grid">
+       <div class="c4"><label>On-call morning</label><div class="autofield">${callField(c.morning)}</div></div>
+       <div class="c4"><label>On-call night</label><div class="autofield">${callField(c.night)}</div></div>
+       <div class="c4"><label>Post-call</label><div class="autofield">${callField(c.post)}</div></div>
+     </div>
+     <div class="taskgrid" style="margin-top:9px">
+       ${WORKS.map(w=>`<div class="taskline"><label class="taskcheck"><input type="checkbox" ${cfg[w.id]?'checked':''} onchange="setWork('${date}','${team}','${w.id}',this.checked)"> ${w.label}</label></div>`).join('')}
+     </div>
+   </div>`;
+ }).join('');
+}
+
+
+function roomKindLabel(kind){return kind==='DSU'?'DSU':'OR'}
+function roomOptions(selected='',allowBlank=true){
+ return (allowBlank?`<option value="">— Room not selected —</option>`:'')+state.orRooms.map(r=>`<option value="${r.id}" ${selected===r.id?'selected':''}>${esc(r.name)}</option>`).join('');
+}
+function dayOptions(selected){return [0,1,2,3,4].map(d=>`<option value="${d}" ${Number(selected)===d?'selected':''}>${DOW[d]}</option>`).join('')}
+function periodOptions(selected){return ['am','pm','full'].map(p=>`<option value="${p}" ${selected===p?'selected':''}>${p==='full'?'Full day':p.toUpperCase()}</option>`).join('')}
+function teamOptions(selected='',allowBlank=false){return `${allowBlank?'<option value="">— Unassigned —</option>':''}`+['1','2','3'].map(t=>`<option value="${t}" ${selected===t?'selected':''}>${TEAM_NAMES[t]}</option>`).join('')}
+function resolveFixedConsultant(name){
+ if(!name)return null;
+ const direct=state.members.find(m=>isConsultant(m)&&key(m.name)===key(name));if(direct)return direct;
+ const fuzzy=state.members.filter(m=>isConsultant(m)&&fuzzyNameMatch(m.name,name));return fuzzy.length===1?fuzzy[0]:null;
+}
+function consultantOptionsByNames(names=[],selected='',date=''){
+ let arr=state.members.filter(isConsultant);
+ if(names?.length)arr=arr.filter(m=>names.some(n=>key(n)===key(m.name)||fuzzyNameMatch(n,m.name)));
+ if(date)arr=arr.filter(m=>!onLeave(m.id,date));
+ arr.sort((a,b)=>a.name.localeCompare(b.name));
+ return `<option value="">— بدون اسم —</option>`+arr.map(m=>`<option value="${m.id}" ${selected===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
+}
+function consultantOptionsForTeam(team,selected='',date=''){
+ let arr=state.members.filter(m=>isConsultant(m)&&m.team===team);
+ if(date)arr=arr.filter(m=>!onLeave(m.id,date));
+ arr.sort((a,b)=>a.name.localeCompare(b.name));
+ return `<option value="">— بدون اسم —</option>`+arr.map(m=>`<option value="${m.id}" ${selected===m.id?'selected':''}>${esc(m.name)}</option>`).join('');
+}
+function renderORRoomsList(){
+ const rows=state.orRooms.map(r=>`<tr><td>${esc(r.name)}</td><td>${roomKindLabel(r.kind)}</td><td>${r.locked?'<span class="tag">أساسية</span>':`<button class="btn danger" onclick="removeORRoom('${r.id}')">حذف</button>`}</td></tr>`).join('');
+ $('orRoomsList').innerHTML=`<div class="tablewrap"><table><thead><tr><th>الغرفة</th><th>النوع</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function addORRoom(){
+ const name=$('newORRoomName').value.trim(),kind=$('newORRoomKind').value;if(!name)return alert('اكتب اسم الغرفة');
+ state.orRooms.push({id:uid('room'),name,kind,locked:false});$('newORRoomName').value='';save();renderOperations();renderExtraORs();
+}
+function removeORRoom(id){
+ if(!confirm('حذف هذه الغرفة من الإعدادات؟'))return;
+ state.orRooms=state.orRooms.filter(r=>r.id!==id);
+ state.fixedORs.forEach(x=>{if(x.roomId===id)x.roomId=''});
+ for(const d of Object.values(state.fixedOROverrides||{}))for(const o of Object.values(d||{}))if(o.roomId===id)o.roomId='';
+ state.extraORs.forEach(x=>{if(x.roomId===id)x.roomId=''});save();renderOperations();renderExtraORs();
+}
+function fixedORsForDate(date){
+ if(!date)return[];const dow=new Date(date+'T12:00:00').getDay();return state.fixedORs.filter(x=>x.enabled!==false&&Number(x.dow)===dow);
+}
+function fixedOROwnerId(t,date){
+ const ov=state.fixedOROverrides?.[date]?.[t.id]||{};
+ if(ov.consultantId && !onLeave(ov.consultantId,date))return ov.consultantId;
+ const m=resolveFixedConsultant(t.consultantName);
+ return (m&&!onLeave(m.id,date))?m.id:'';
+}
+function fixedORRoomId(t,date){return state.fixedOROverrides?.[date]?.[t.id]?.roomId ?? t.roomId ?? ''}
+function fixedORPeriod(t,date){return state.fixedOROverrides?.[date]?.[t.id]?.period || t.period || 'full'}
+function updateFixedOR(id,field,value){
+ const t=state.fixedORs.find(x=>x.id===id);if(!t)return;
+ if(field==='dow')t.dow=Number(value); else if(field==='enabled')t.enabled=!!value; else if(field==='consultantId'){const m=byId(value);t.consultantName=m?.name||'';t.candidateNames=[];} else t[field]=value;
+ save();if(Object.keys(state.schedule||{}).length)generateDates(periodDates(),true,false);renderOperations();
+}
+function renderFixedORTable(){
+ const rows=state.fixedORs.map(t=>{
+   const owner=resolveFixedConsultant(t.consultantName);const shared=t.candidateNames?.length;
+   return `<tr><td><input type="checkbox" ${t.enabled!==false?'checked':''} onchange="updateFixedOR('${t.id}','enabled',this.checked)"></td>
+   <td><select onchange="updateFixedOR('${t.id}','dow',this.value)">${dayOptions(t.dow)}</select></td>
+   <td>${shared?`<span class="tag">Team C shared</span><div class="small">${t.candidateNames.map(esc).join(', ')}</div>`:`<select onchange="updateFixedOR('${t.id}','consultantId',this.value)">${consultantOptionsForTeam(t.team,owner?.id||'')}</select>`}</td>
+   <td><select onchange="updateFixedOR('${t.id}','period',this.value)">${periodOptions(t.period)}</select></td>
+   <td><select onchange="updateFixedOR('${t.id}','roomId',this.value)">${roomOptions(t.roomId||'')}</select></td>
+   <td>${TEAM_NAMES[t.team]||'—'}</td></tr>`;
+ }).join('');
+ $('fixedORTable').innerHTML=`<div class="tablewrap"><table><thead><tr><th>On</th><th>Day</th><th>Consultant / group</th><th>Period</th><th>Default room</th><th>Team</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function setFixedOROverride(date,id,field,value){
+ if(!state.fixedOROverrides[date])state.fixedOROverrides[date]={};
+ if(!state.fixedOROverrides[date][id])state.fixedOROverrides[date][id]={};
+ state.fixedOROverrides[date][id][field]=value;save();
+ if(Object.keys(state.schedule||{}).length)regenerateWeekContaining(date,false);
+ renderOperations();
+}
+function renderOperations(){
+ syncDateSelect('orDate',$('orDate')?.value);renderORRoomsList();renderFixedORTable();$('internPolicy').value=state.internPolicy||'optional';
+ const date=$('orDate').value;if(!date){$('fixedORDayView').innerHTML='<div class="warn">حدد الفترة أولاً.</div>';return}
+ const arr=fixedORsForDate(date);
+ $('fixedORDayView').innerHTML=arr.length?arr.map(t=>{
+   const owner=fixedOROwnerId(t,date),room=fixedORRoomId(t,date),period=fixedORPeriod(t,date),shared=t.candidateNames?.length;
+   const ownerOpts=shared?consultantOptionsByNames(t.candidateNames,owner,date):consultantOptionsForTeam(t.team,owner,date);
+   return `<div class="taskline"><b>${esc(t.label)} — ${TEAM_NAMES[t.team]}</b>
+     <div class="grid" style="margin-top:8px"><div class="c4"><label>Consultant</label><select onchange="setFixedOROverride('${date}','${t.id}','consultantId',this.value)">${ownerOpts}</select></div>
+     <div class="c4"><label>Room</label><select onchange="setFixedOROverride('${date}','${t.id}','roomId',this.value)">${roomOptions(room)}</select></div>
+     <div class="c4"><label>Period</label><select onchange="setFixedOROverride('${date}','${t.id}','period',this.value)">${periodOptions(period)}</select></div></div>
+     ${shared&&!owner?'<div class="warn" style="margin-top:6px">اختر أحد استشاريي Team C لهذا اليوم.</div>':''}
+   </div>`;
+ }).join(''):'<div class="small">لا توجد عمليات ثابتة في هذا اليوم.</div>';
+}
+
+function renderExtraORs(){
+ syncDateSelect('extraORDate',$('extraORDate')?.value);const d=$('extraORDate').value;
+ $('extraORConsultant').innerHTML=d?consultantOptionsByNames([], '', d):'<option value="">— حدد الفترة —</option>';
+ $('extraORRoom').innerHTML=roomOptions('',true);
+ const dates=new Set(periodDates());const rows=state.extraORs.filter(x=>dates.has(x.date)).sort((a,b)=>a.date.localeCompare(b.date)).map(x=>`<tr>
+   <td>${dateLabel(x.date)}</td><td>${x.type==='emergency'?'Emergency':'Additional'}</td><td>${TEAM_NAMES[x.team]}</td><td>${esc(byId(x.consultantId)?.name||'—')}</td><td>${esc(state.orRooms.find(r=>r.id===x.roomId)?.name||'Room not selected')}</td><td>${x.period==='full'?'Full day':x.period.toUpperCase()}</td><td>${esc(x.note||'')}</td>
+   <td><button class="btn danger" onclick="removeExtraOR('${x.id}')">حذف وإعادة التوليد</button></td></tr>`).join('');
+ $('extraORTable').innerHTML=rows?`<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Team</th><th>Consultant</th><th>Room</th><th>Period</th><th>Note</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="small">لا توجد عمليات طارئة أو إضافية في الفترة الحالية.</div>';
+}
+function addExtraOR(){
+ const date=$('extraORDate').value,consultantId=$('extraORConsultant').value,team=$('extraORTeam').value;if(!date||!consultantId||!team)return alert('اختر التاريخ والفريق والاستشاري');
+ state.extraORs.push({id:uid('xo'),date,type:$('extraORType').value,team,consultantId,roomId:$('extraORRoom').value,period:$('extraORPeriod').value,note:$('extraORNote').value.trim()});$('extraORNote').value='';save();
+ regenerateWeekContaining(date,false);renderExtraORs();renderResult();renderWhatsApp();
+}
+function removeExtraOR(id){
+ const x=state.extraORs.find(z=>z.id===id);if(!x)return;const date=x.date;state.extraORs=state.extraORs.filter(z=>z.id!==id);save();regenerateWeekContaining(date,false);renderExtraORs();renderResult();renderWhatsApp();
+}
+
+function clinicLabel(c){return `${CLINIC_TYPES[c.type]?.label||c.type} ${c.period==='full'?'FULL DAY':c.period.toUpperCase()}`}
+function fixedClinicsForDate(date){
+ if(!date)return[];const dow=new Date(date+'T12:00:00').getDay(),month=date.slice(0,7);
+ return state.fixedClinics.filter(x=>x.enabled!==false&&Number(x.dow)===dow&&(!x.monthOnly||x.monthOnly===month));
+}
+function updateFixedClinic(id,field,value){
+ const c=state.fixedClinics.find(x=>x.id===id);if(!c)return;
+ if(field==='dow')c.dow=Number(value);else if(field==='enabled')c.enabled=!!value;else if(field==='consultantId'){const m=byId(value);c.consultantName=m?.name||'';if(m?.team)c.team=m.team;}else c[field]=value;
+ save();if(Object.keys(state.schedule||{}).length)generateDates(periodDates(),true,false);renderClinics();
+}
+function clinicTypeOptions(selected){return Object.entries(CLINIC_TYPES).map(([k,v])=>`<option value="${k}" ${selected===k?'selected':''}>${v.label}</option>`).join('')}
+function renderFixedClinicTable(){
+ const rows=state.fixedClinics.map(c=>{const owner=resolveFixedConsultant(c.consultantName);return `<tr>
+   <td><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="updateFixedClinic('${c.id}','enabled',this.checked)"></td>
+   <td><select onchange="updateFixedClinic('${c.id}','dow',this.value)">${dayOptions(c.dow)}</select></td>
+   <td><select onchange="updateFixedClinic('${c.id}','period',this.value)">${periodOptions(c.period)}</select></td>
+   <td><select onchange="updateFixedClinic('${c.id}','type',this.value)">${clinicTypeOptions(c.type)}</select></td>
+   <td><select onchange="updateFixedClinic('${c.id}','consultantId',this.value)">${consultantOptionsByNames([],owner?.id||'')}</select></td>
+   <td><select onchange="updateFixedClinic('${c.id}','team',this.value)">${teamOptions(c.team,true)}</select></td>
+   <td>${c.monthOnly?`<span class="tag">${c.monthOnly} only</span>`:'Every month'}</td></tr>`}).join('');
+ $('fixedClinicTable').innerHTML=`<div class="tablewrap"><table><thead><tr><th>On</th><th>Day</th><th>Period</th><th>Clinic</th><th>Consultant</th><th>Team</th><th>Applies</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderClinics(){
+ renderFixedClinicTable();syncDateSelect('clinicDate',$('clinicDate')?.value);
+ const d=$('clinicDate').value;$('clinicConsultant').innerHTML=d?consultantsForDate(d,''):'<option value="">— حدد الفترة أولاً —</option>';
+ const dates=new Set(periodDates());const rows=state.clinics.filter(c=>dates.has(c.date)).sort((a,b)=>a.date.localeCompare(b.date)||a.team.localeCompare(b.team)).map(c=>`<tr><td>${dateLabel(c.date)}</td><td>${TEAM_NAMES[c.team]}</td><td>${clinicLabel(c)}</td><td>${esc(byId(c.consultantId)?.name||'—')}</td><td><button class="btn danger" onclick="removeClinic('${c.id}')">حذف</button></td></tr>`).join('');
+ $('clinicTable').innerHTML=rows?`<div class="tablewrap"><table><thead><tr><th>التاريخ</th><th>الفريق</th><th>العيادة</th><th>الاستشاري</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="small">لا توجد عيادات إضافية في الفترة الحالية.</div>';
+}
+function addClinic(){
+ const date=$('clinicDate').value;if(!date)return alert('حدد الفترة أولاً');
+ state.clinics.push({id:uid('c'),date,team:$('clinicTeam').value,type:$('clinicType').value,period:$('clinicPeriod').value,consultantId:$('clinicConsultant').value});save();
+ if(Object.keys(state.schedule||{}).length)regenerateWeekContaining(date,false);renderClinics();
+}
+function removeClinic(id){const c=state.clinics.find(x=>x.id===id);state.clinics=state.clinics.filter(x=>x.id!==id);save();if(c&&Object.keys(state.schedule||{}).length)regenerateWeekContaining(c.date,false);renderClinics()}
+
+function renderLeaves(){
+ const rows=state.leaves.slice().sort((a,b)=>a.from.localeCompare(b.from)).map(l=>`<tr><td>${esc(byId(l.memberId)?.name||'محذوف')}</td><td>${l.type==='emergency'?'Emergency':l.type==='additional'?'Additional':'Planned'}</td><td>${l.from}</td><td>${l.to}</td><td>${esc(l.reason||'')}</td><td><button class="btn danger" onclick="removeLeave('${l.id}')">حذف</button></td></tr>`).join('');
+ $('leaveTable').innerHTML=rows?`<div class="tablewrap"><table><thead><tr><th>الطبيب</th><th>النوع</th><th>من</th><th>إلى</th><th>السبب</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="small">لا توجد إجازات.</div>';
+ renderMemberSelectors();const dates=periodDates();if(dates.length&&!$('leaveFrom').value){$('leaveFrom').value=dates[0];$('leaveTo').value=dates[0]}
+}
+function affectedWorkWeeks(from,to){
+ const dates=periodDates().filter(d=>d>=from&&d<=to);const starts=new Set();for(const d of dates){const dow=new Date(d+'T12:00:00').getDay();starts.add(dateAdd(d,-dow))}return[...starts];
+}
+function addLeave(){
+ const memberId=$('leaveMember').value,from=$('leaveFrom').value,to=$('leaveTo').value,type=$('leaveType').value;if(!memberId||!from||!to)return alert('اختر الطبيب والتاريخ');if(to<from)return alert('تاريخ النهاية قبل البداية');
+ state.leaves.push({id:uid('l'),memberId,from,to,type,reason:$('leaveReason').value.trim()});save();$('leaveReason').value='';
+ // Any leave type overrides the generated distribution immediately.
+ if(Object.keys(state.schedule||{}).length){
+   for(const ws of affectedWorkWeeks(from,to))generateDates(periodDates().filter(d=>d>=ws&&d<=dateAdd(ws,4)),true,false);
+ }
+ renderLeaves();renderClinics();renderPeriod();renderResult();renderWhatsApp();
+}
+function removeLeave(id){
+ const l=state.leaves.find(x=>x.id===id);state.leaves=state.leaves.filter(x=>x.id!==id);save();if(l&&Object.keys(state.schedule||{}).length){for(const ws of affectedWorkWeeks(l.from,l.to))generateDates(periodDates().filter(d=>d>=ws&&d<=dateAdd(ws,4)),true,false)}renderLeaves();renderClinics();renderPeriod();renderResult();renderWhatsApp();
+}
+
+function pick(team,role,date,activity,load){
+ const pool=state.members.filter(m=>m.team===team&&roleOf(m)===role&&available(m,date,activity.period,activity.type));
+ pool.sort((a,b)=>(load[a.id]||0)-(load[b.id]||0)||a.name.localeCompare(b.name));
+ const m=pool[0];if(m)load[m.id]=(load[m.id]||0)+1;return m||null;
+}
+function makeSlots(team,date,activity,roles,load,internAllowed=false){
+ const slots=roles.map((role,i)=>{const m=pick(team,role,date,activity,load);return{role,slotIndex:i,memberId:m?.id||'',sourceTeam:m?.team||team}});
+ if(internAllowed&&state.internPolicy!=='off'){
+   const m=pick(team,'intern',date,activity,load);
+   if(m||state.internPolicy==='required')slots.push({role:'intern',slotIndex:slots.length,memberId:m?.id||'',sourceTeam:m?.team||team});
+ }
+ return slots;
+}
+function captureManualAssignments(dates){
+ const map={};for(const date of dates)for(const team of ['1','2','3'])for(const a of state.schedule?.[date]?.[team]?.activities||[])for(const sl of a.slots||[])if(sl.manual&&sl.memberId)map[`${date}|${team}|${a.key}|${sl.slotIndex}`]=sl.memberId;return map;
+}
+function restoreManualSlots(date,team,a,map){
+ for(const sl of a.slots||[]){if(sl.memberId)continue;const id=map[`${date}|${team}|${a.key}|${sl.slotIndex}`];if(!id)continue;const m=byId(id);if(!m||roleOf(m)!==sl.role||onLeave(id,date)||isCallRestricted(m,date,a.period,a.type)||assignedElsewhere(id,date,a.period,a.key))continue;sl.memberId=id;sl.sourceTeam=m.team;sl.manual=true;}
+}
+function addStaffedActivity(activities,a,team,date,roles,load,internAllowed,manualMap){
+ a.slots=makeSlots(team,date,a,roles,load,internAllowed);activities.push(a);restoreManualSlots(date,team,a,manualMap);
+}
+function addRoundActivity(activities,team,date,period,load,manualMap){
+ const suffix=period==='am'?'AM':'PM';
+ const a={key:`work:${date}:${team}:round:${period}`,type:'round',label:`Round / Ward — ${suffix}`,period,source:'work',members:[],extraMembers:[],slots:[],consultantId:'',reason:`Round ${suffix}`};
+
+ // Minimum required: one specialist and one resident from the same team.
+ a.slots=makeSlots(team,date,a,['specialist','resident'],load,false);
+ activities.push(a);
+ restoreManualSlots(date,team,a,manualMap);
+
+ // Everybody else from the same team who is still genuinely free can also join the round.
+ const used=new Set(a.slots.map(x=>x.memberId).filter(Boolean));
+ const extras=state.members
+   .filter(m=>m.team===team&&!used.has(m.id)&&(roleOf(m)==='specialist'||roleOf(m)==='resident'))
+   .filter(m=>available(m,date,period,'round',a.key))
+   .sort((x,y)=>(load[x.id]||0)-(load[y.id]||0)||x.name.localeCompare(y.name));
+
+ for(const m of extras){
+   a.extraMembers.push(m.id);
+   load[m.id]=(load[m.id]||0)+1;
+ }
+}
+function surplusEntries(date,targetActivity=null,role=null,teamFilter=null){
+ const out=[];
+ for(const sourceTeam of ['1','2','3']){
+   if(teamFilter && sourceTeam!==teamFilter)continue;
+   const day=state.schedule?.[date]?.[sourceTeam];if(!day)continue;
+   for(const source of day.activities||[]){
+     if(targetActivity && source.key===targetActivity.key)continue;
+     if(targetActivity && !conflict(targetActivity.period,source.period))continue;
+     for(const id of source.extraMembers||[]){
+       const m=byId(id);
+       if(!m||onLeave(id,date))continue;
+       if(role && roleOf(m)!==role)continue;
+       if(targetActivity && isCallRestricted(m,date,targetActivity.period,targetActivity.type))continue;
+       out.push({member:m,sourceTeam,source});
+     }
+   }
+ }
+ return out;
+}
+
+function moveSurplusToSlot(date,targetTeam,targetActivity,slot,entry,manual=false){
+ if(!entry?.member||!entry?.source)return false;
+ const id=entry.member.id;
+ // Remove the doctor from the overstaffed source assignment.
+ entry.source.extraMembers=(entry.source.extraMembers||[]).filter(x=>x!==id);
+ slot.memberId=id;
+ slot.sourceTeam=entry.member.team||targetTeam;
+ slot.manual=manual;
+ slot.movedFrom=entry.source.key;
+ return true;
+}
+
+function rebalanceSurplusForTeam(date,team,activities){
+ // Critical work first, then round gaps. Move only within the same team automatically.
+ const targets=[];
+ for(const a of activities){
+   for(const sl of a.slots||[]){
+     if(!sl.memberId)targets.push({activity:a,slot:sl});
+   }
+ }
+ targets.sort((x,y)=>{
+   const xr=x.activity.type==='round'?1:0,yr=y.activity.type==='round'?1:0;
+   return xr-yr;
+ });
+ for(const t of targets){
+   if(t.slot.memberId)continue;
+   const candidates=surplusEntries(date,t.activity,t.slot.role,team)
+     .filter(e=>e.member.team===team);
+   if(candidates.length)moveSurplusToSlot(date,team,t.activity,t.slot,candidates[0],false);
+ }
+}
+
+function generateDates(targetDates=null,preserveManual=true,goToResult=false){
+ const all=periodDates();const dates=(targetDates||all).filter(d=>all.includes(d));if(!dates.length)return false;ensureConfigs();
+ const manualMap=preserveManual?captureManualAssignments(dates):{};const load={};state.members.forEach(m=>load[m.id]=0);
+ for(const date of dates){
+   state.schedule[date]={1:null,2:null,3:null};
+   for(const team of ['1','2','3']){
+     const activities=[];const cfg=state.workConfig[date][team];const initialCall=callInfo(team,date);
+     state.schedule[date][team]={activities,oncallMorning:initialCall.morning.map(x=>x.id),oncallNight:initialCall.night.map(x=>x.id),postcall:initialCall.post.map(x=>x.id),third:initialCall.third?.id||''};
+
+     // 1) Emergency OR first.
+     for(const x of state.extraORs.filter(x=>x.date===date&&x.team===team&&x.type==='emergency')){
+       const room=state.orRooms.find(r=>r.id===x.roomId);const a={key:`extraor:${x.id}`,type:'urgent_or',label:`Emergency OR${room?' — '+room.name:''}`,period:x.period,source:'urgent',members:[],slots:[],consultantId:(x.consultantId&&!onLeave(x.consultantId,date))?x.consultantId:'',reason:'Emergency OR'};
+       addStaffedActivity(activities,a,team,date,['specialist','resident'],load,false,manualMap);
+     }
+
+     // 2) Fixed weekly OR schedule.
+     for(const t of fixedORsForDate(date).filter(x=>x.team===team)){
+       const roomId=fixedORRoomId(t,date),room=state.orRooms.find(r=>r.id===roomId),owner=fixedOROwnerId(t,date);const a={key:`fixedor:${t.id}:${date}`,type:room?.kind==='DSU'?'dsu':'or',label:`${t.label}${room?' — '+room.name:' — Room not selected'}`,period:fixedORPeriod(t,date),source:'fixed_operation',members:[],slots:[],consultantId:owner,requiresConsultant:true,reason:'Fixed OR'};
+       addStaffedActivity(activities,a,team,date,['specialist','resident'],load,true,manualMap);
+     }
+
+     // 3) Additional OR after fixed OR.
+     for(const x of state.extraORs.filter(x=>x.date===date&&x.team===team&&x.type==='additional')){
+       const room=state.orRooms.find(r=>r.id===x.roomId);const a={key:`extraor:${x.id}`,type:'or',label:`Additional OR${room?' — '+room.name:''}`,period:x.period,source:'additional_operation',members:[],slots:[],consultantId:(x.consultantId&&!onLeave(x.consultantId,date))?x.consultantId:'',reason:'Additional OR'};
+       addStaffedActivity(activities,a,team,date,['specialist','resident'],load,false,manualMap);
+     }
+
+     // 4) Fixed clinics with an assigned team.
+     for(const c of fixedClinicsForDate(date).filter(x=>x.team===team)){
+       const def=CLINIC_TYPES[c.type];if(!def)continue;const owner=resolveFixedConsultant(c.consultantName);const ownerId=(owner&&!onLeave(owner.id,date))?owner.id:'';const a={key:`fixedclinic:${c.id}:${date}`,type:`clinic_${c.type}`,label:clinicLabel(c),period:c.period,source:'fixed_clinic',members:[],slots:[],consultantId:ownerId,reason:'Fixed clinic'};
+       addStaffedActivity(activities,a,team,date,def.slots,load,false,manualMap);
+     }
+
+     // 5) Date-specific clinics.
+     for(const c of state.clinics.filter(x=>x.date===date&&x.team===team)){
+       const def=CLINIC_TYPES[c.type];if(!def)continue;const a={key:`clinic:${c.id}`,type:`clinic_${c.type}`,label:clinicLabel(c),period:c.period,source:'clinic',members:[],slots:[],consultantId:c.consultantId||'',reason:'Additional clinic'};
+       addStaffedActivity(activities,a,team,date,def.slots,load,false,manualMap);
+     }
+
+     // 6) Round / Ward — independently staffed in the morning and afternoon.
+     // Each shift requires at least 1 Specialist + 1 Resident. Any further free
+     // same-team specialists/residents are added to the round. Cross-team gaps
+     // are never auto-filled; they remain visible for manual selection.
+     if(cfg.round){
+       addRoundActivity(activities,team,date,'am',load,manualMap);
+       addRoundActivity(activities,team,date,'pm',load,manualMap);
+     }
+
+     // If the same team has surplus Specialist/Resident in Round while another
+     // overlapping assignment is short of the same role, move the surplus first.
+     // Cross-team moves are still left for manual approval.
+     rebalanceSurplusForTeam(date,team,activities);
+   }
+ }
+ save();if(goToResult){syncDateSelect('resultDate',dates[0]);renderResult();showPage('result')}return true;
+}
+function regenerateWeekContaining(date,goToResult=false){
+ if(!date)return false;const dow=new Date(date+'T12:00:00').getDay(),start=dateAdd(date,-dow),end=dateAdd(start,4),dates=periodDates().filter(d=>d>=start&&d<=end);return generateDates(dates,true,goToResult);
+}
+function generate(){const dates=periodDates();if(!dates.length)return alert('حدد الفترة أولاً');generateDates(dates,true,true)}
+function candidateOptions(team,date,activity,slot,selected=''){
+ const role=slot.role;
+ const surplus=surplusEntries(date,activity,role,null)
+   .filter(e=>!isConsultant(e.member)&&e.member.id!==state.weeklyER)
+   .sort((a,b)=>(a.sourceTeam===team?-1:1)-(b.sourceTeam===team?-1:1)||a.sourceTeam.localeCompare(b.sourceTeam)||a.member.name.localeCompare(b.member.name));
+
+ const surplusIds=new Set(surplus.map(e=>e.member.id));
+ const free=state.members
+   .filter(m=>m.team&&roleOf(m)===role&&!isConsultant(m)&&!onLeave(m.id,date)&&m.id!==state.weeklyER&&!surplusIds.has(m.id))
+   .filter(m=>!isCallRestricted(m,date,activity.period,activity.type))
+   .filter(m=>!assignedElsewhere(m.id,date,activity.period,activity.key))
+   .sort((a,b)=>(a.team===team?-1:1)-(b.team===team?-1:1)||a.team.localeCompare(b.team)||a.name.localeCompare(b.name));
+
+ let html='<option value="">— اختر البديل —</option>';
+ if(surplus.length){
+   html+='<optgroup label="زائد في مكان آخر — سيتم نقله">';
+   html+=surplus.map(e=>{
+     const v=`MOVE|${e.sourceTeam}|${encodeURIComponent(e.source.key)}|${e.member.id}`;
+     return `<option value="${v}">${esc(e.member.name)} — ${TEAM_NAMES[e.sourceTeam]} / ${esc(e.source.label)} — سينقل</option>`;
+   }).join('');
+   html+='</optgroup>';
+ }
+ if(free.length){
+   html+='<optgroup label="متفرغ">';
+   html+=free.map(m=>`<option value="${m.id}" ${selected===m.id?'selected':''}>${esc(m.name)} — ${TEAM_NAMES[m.team]}${m.team===team?' (نفس الفريق)':''}</option>`).join('');
+   html+='</optgroup>';
+ }
+ if(!surplus.length&&!free.length)html+='<option value="" disabled>لا يوجد بديل متاح حاليًا</option>';
+ return html;
+}
+function fillVacancy(date,team,key,slotIndex,value){
+ const day=state.schedule?.[date]?.[team];if(!day)return;
+ const a=day.activities.find(x=>x.key===key);if(!a)return;
+ const sl=a.slots.find(x=>x.slotIndex===Number(slotIndex));if(!sl)return;
+
+ if(!value){
+   sl.memberId='';sl.sourceTeam=team;sl.manual=false;delete sl.movedFrom;
+   save();renderResult();renderWhatsApp();return;
+ }
+
+ if(value.startsWith('MOVE|')){
+   const parts=value.split('|');
+   const sourceTeam=parts[1],sourceKey=decodeURIComponent(parts[2]||''),memberId=parts[3]||'';
+   const source=state.schedule?.[date]?.[sourceTeam]?.activities?.find(x=>x.key===sourceKey);
+   const m=byId(memberId);
+   if(!source||!m||!(source.extraMembers||[]).includes(memberId)){
+     alert('لم يعد هذا الطبيب زائدًا في المكان السابق. أعد فتح قائمة البدائل.');
+     renderResult();return;
+   }
+   if(onLeave(memberId,date)||isCallRestricted(m,date,a.period,a.type)){
+     alert('الطبيب لم يعد متاحًا لهذا العمل.');
+     renderResult();return;
+   }
+   moveSurplusToSlot(date,team,a,sl,{member:m,sourceTeam,source},true);
+ }else{
+   const m=byId(value);
+   if(!m)return;
+   sl.memberId=value;sl.sourceTeam=m.team||team;sl.manual=true;delete sl.movedFrom;
+ }
+ save();renderResult();renderWhatsApp();
+}
+function roleLabel(r){return r==='specialist'?'Specialist':r==='resident'?'Resident':'Intern'}
+function fmtIds(ids){return (ids||[]).map(id=>byId(id)?.name).filter(Boolean).join(', ')||'—'}
+function renderResult(){
+ syncDateSelect('resultDate',$('resultDate')?.value);const date=$('resultDate').value;
+ if(!date){$('resultDayView').innerHTML='<div class="card warn">حدد الفترة أولاً.</div>';$('stats').innerHTML='';return}
+ const daySchedule=state.schedule?.[date];let total=0,missing=0,cross=0;
+ const unassignedFixed=fixedClinicsForDate(date).filter(c=>!c.team);
+ let html=`<div class="card"><h2>${dateLabel(date)}</h2>${unassignedFixed.length?`<div class="warn"><b>Fixed clinics without team:</b> ${unassignedFixed.map(c=>esc(clinicLabel(c))).join(' • ')} — اختر Team من صفحة العيادات إذا أردت توزيع الطاقم عليها.</div>`:''}`;
+ for(const team of ['1','2','3']){
+   const day=daySchedule?.[team];
+   html+=`<div class="resultTeam"><b>${TEAM_NAMES[team]}</b>`;
+   if(!day){html+='<div class="small">لم يتم التوليد بعد.</div></div>';continue}
+   html+=`<div class="assignment"><strong>On-call morning:</strong> ${fmtIds(day.oncallMorning)}</div>
+          <div class="assignment"><strong>On-call night:</strong> ${fmtIds(day.oncallNight)}</div>
+          <div class="assignment"><strong>Post-call:</strong> ${fmtIds(day.postcall)}</div>`;
+   for(const a of day.activities){
+     total++;let content='';
+     if(a.members?.length)content=fmtIds(a.members);
+     else if(a.slots?.length){
+       content=a.slots.map(s=>{
+         const m=s.memberId?byId(s.memberId):null;
+         if(m&&!onLeave(m.id,date)){if(m.team!==team)cross++;return `<span class="pill">${esc(m.name)}${m.team!==team?' — '+TEAM_NAMES[m.team]:''}${s.movedFrom?' ↪':''}</span>`}
+         missing++;
+         return `<details class="missing"><summary>ناقص ${roleLabel(s.role)} — اضغط لاختيار بديل</summary>${a.reason?`<div class="small">${esc(a.reason)}</div>`:''}<select onchange="fillVacancy('${date}','${team}','${a.key}',${s.slotIndex},this.value)">${candidateOptions(team,date,a,s,'')}</select></details>`;
+       }).join(' ');
+       if(a.extraMembers?.length)content+=` ${a.extraMembers.filter(id=>!onLeave(id,date)).map(id=>`<span class="pill">${esc(byId(id)?.name||'')}</span>`).join(' ')}`;
+     }else content='—';
+     const owner=a.consultantId?` <span class="small">[${a.source.includes('operation')||a.source==='urgent'?'Operation under':'Clinic under'}: ${esc(byId(a.consultantId)?.name||'')}]</span>`:(a.requiresConsultant?` <span class="warn">[Consultant not selected]</span>`:'');
+     html+=`<div class="assignment"><strong>${esc(a.label)}:</strong> ${content}${owner}</div>`;
+   }
+   html+='</div>';
+ }
+ html+='</div>';$('resultDayView').innerHTML=html;
+ $('stats').innerHTML=`<div class="stat"><b>${total}</b><span>أعمال اليوم</span></div><div class="stat"><b>${missing}</b><span>خانات ناقصة</span></div><div class="stat"><b>${cross}</b><span>استعانة بفريق آخر</span></div><div class="stat"><b>${state.clinics.filter(c=>c.date===date).length+fixedClinicsForDate(date).length}</b><span>عيادات اليوم</span></div>`;
+}
+
+function buildWhatsApp(date,team){
+ const day=state.schedule?.[date]?.[team];if(!day)return'Generate the schedule first.';
+ const lines=['Alsalamoalikom',"Tomorrow insha'Allah",''];
+ for(const a of day.activities){
+   let names=a.members?.length?fmtIds(a.members):(a.slots||[]).map(s=>s.memberId?(byId(s.memberId)?.name||''):`[Missing ${roleLabel(s.role)}]`).join(', ');
+   if(a.extraMembers?.length)names+=(names?', ':'')+a.extraMembers.map(id=>byId(id)?.name||'').filter(Boolean).join(', ');
+   const owner=a.consultantId?byId(a.consultantId)?.name:'';
+   lines.push(`${a.label}${owner?` (${owner})`:''}: ${names||'—'}.`,'');
+ }
+ if(day.oncallMorning.length)lines.push(`Oncall morning: ${fmtIds(day.oncallMorning)}.`,'');
+ if(day.oncallNight.length)lines.push(`Oncall night: ${fmtIds(day.oncallNight)}.`,'');
+ if(day.postcall.length)lines.push(`Post call: ${fmtIds(day.postcall)}.`,'');
+ if(state.weeklyER)lines.push(`${byId(state.weeklyER)?.name||'Resident'} will be in ER for this period.`);
+ return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function renderWhatsApp(){syncDateSelect('waDate',$('waDate')?.value);$('waText').value=buildWhatsApp($('waDate').value,$('waTeam').value)}
+
+function linesFromItems(items){
+ const groups=[];
+ for(const it of items.filter(x=>x.text.trim())){
+   let g=groups.find(z=>Math.abs(z.y-it.y)<2.5);
+   if(!g){g={y:it.y,items:[]};groups.push(g)}
+   g.items.push(it);
+ }
+ return groups.sort((a,b)=>b.y-a.y).map(g=>g.items.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' '));
+}
+function parsePhones(pages){
+ const pairs=[];
+ for(const p of pages){
+   for(const line of linesFromItems(p.items)){
+     const re=/(DR\.?\s*[A-Z][A-Z.\s]*?)(?:\s*\([^)]*\))?\s+(05\d{8})/g;let m;
+     while((m=re.exec(line.toUpperCase()))!==null)pairs.push({name:m[1].trim(),phone:m[2]});
+   }
+ }
+ state.phoneDirectory=pairs;
+ return pairs.length;
+}
+function bestPhoneFor(name){
+ const hits=state.phoneDirectory.filter(p=>fuzzyNameMatch(name,p.name));
+ return hits.length===1?hits[0].phone:'';
+}
+function parseTeamsDetailed(pages){
+ if(!pages.length)return 0;
+ const p=pages[0],items=p.items.filter(i=>String(i.text||'').trim());
+
+ const teamHeaders=items.map(i=>({i,txt:String(i.text).trim().toUpperCase()}))
+   .filter(x=>/^TEAM\s*[ABC]$/.test(x.txt))
+   .map(x=>({team:(x.txt.match(/[ABC]$/)||[''])[0],x:x.i.x,y:x.i.y}))
+   .sort((a,b)=>a.x-b.x);
+ const teamMap={A:'1',B:'2',C:'3'};
+ if(teamHeaders.length<3)return 0;
+
+ // Use the mid-points between the printed TEAM columns instead of text order.
+ const boundaries=[];
+ for(let i=0;i<teamHeaders.length-1;i++)boundaries.push((teamHeaders[i].x+teamHeaders[i+1].x)/2);
+ function teamForX(x){
+   if(x<boundaries[0])return teamHeaders[0];
+   if(x<boundaries[1])return teamHeaders[1];
+   return teamHeaders[2];
+ }
+ function columnBounds(header){
+   const idx=teamHeaders.indexOf(header);
+   return {
+     lo:idx===0?-Infinity:boundaries[idx-1],
+     hi:idx===teamHeaders.length-1?Infinity:boundaries[idx]
+   };
+ }
+ function ysFor(re){return items.filter(i=>re.test(String(i.text).trim().toUpperCase())).map(i=>i.y)}
+ const yConsult=ysFor(/^CONSULTANTS?$/)[0]??null;
+ const ySpecial=ysFor(/^SPECIALISTS?$/)[0]??null;
+ const yProgram=ysFor(/^PROGRAM$/)[0]??null;
+ let residentYs=ysFor(/^RESIDENTS?$/);
+ if(yProgram!==null)residentYs=residentYs.filter(y=>Math.abs(y-yProgram)>30);
+
+ const doctorLike=items.filter(i=>/^DR\.?/i.test(String(i.text).trim()));
+ const rows=[];
+ for(const d of doctorLike){
+   const nearest=teamForX(d.x);
+   const bounds=columnBounds(nearest);
+
+   // Reject names outside the actual staff bands (e.g. department-head signature below the table).
+   const sectionDistances=[];
+   if(yConsult!==null)sectionDistances.push(Math.abs(d.y-yConsult));
+   if(ySpecial!==null)sectionDistances.push(Math.abs(d.y-ySpecial));
+   if(yProgram!==null)sectionDistances.push(Math.abs(d.y-yProgram));
+   residentYs.forEach(y=>sectionDistances.push(Math.abs(d.y-y)));
+   if(!sectionDistances.length||Math.min(...sectionDistances)>70)continue;
+
+   // Rebuild only fragments that lie inside the same visual TEAM column.
+   const frags=items.filter(i=>
+     Math.abs(i.y-d.y)<2.8 &&
+     i.x>=bounds.lo && i.x<bounds.hi &&
+     !/^TEAM\s*[ABC]$/i.test(String(i.text).trim())
+   ).sort((a,b)=>a.x-b.x);
+
+   let name=frags.map(i=>String(i.text).trim()).join(' ').replace(/\s+/g,' ').trim().toUpperCase();
+   if(!/^DR\.?/.test(name))name=String(d.text).trim().toUpperCase();
+
+   // Repair common split-glyph extraction: BURG H ASH -> BURGHASH; AL RAYES -> ALRAYES.
+   name=name.replace(/\b([A-Z]{2,})\s+([A-Z])\s+([A-Z]{2,})\b/g,'$1$2$3')
+            .replace(/\b(AL|ABU|ABDUL)\s+([A-Z]{3,})\b/g,'$1$2')
+            .replace(/\bM\.\s+([A-Z]{2,})\s+([A-Z]{2,})\b/g,'M.$1$2')
+            .replace(/\s+\./g,'.')
+            .replace(/DR\.\s+/,'DR.')
+            .trim();
+
+   let grade='resident';
+   if(yProgram!==null && Math.abs(d.y-yProgram)<=45)grade='program_resident';
+   else{
+     const cats=[];
+     if(yConsult!==null)cats.push({grade:'consultant',d:Math.abs(d.y-yConsult)});
+     if(ySpecial!==null)cats.push({grade:'specialist',d:Math.abs(d.y-ySpecial)});
+     residentYs.forEach(y=>cats.push({grade:'resident',d:Math.abs(d.y-y)}));
+     cats.sort((a,b)=>a.d-b.d);
+     if(cats.length)grade=cats[0].grade;
+   }
+
+   rows.push({name,team:teamMap[nearest.team],grade,y:d.y});
+ }
+
+ const uniq=[];
+ for(const x of rows){
+   const existing=uniq.find(y=>key(y.name)===key(x.name));
+   if(!existing)uniq.push(x);
+ }
+
+ for(const x of uniq){
+   let m=state.members.find(y=>key(y.name)===key(x.name)||fuzzyNameMatch(y.name,x.name));
+   if(m){
+     m.team=x.team;m.grade=x.grade;
+     if(!m.phone)m.phone=bestPhoneFor(x.name);
+   }else{
+     state.members.push({id:uid('m'),name:x.name,phone:bestPhoneFor(x.name),grade:x.grade,team:x.team});
+   }
+ }
+ save();return uniq.length;
+}
+
+
+function monthYearFromRotaText(raw){
+ const txt=String(raw||'').replace(/\s+/g,' ').toUpperCase();
+ const months={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
+ const mt=txt.match(/\b(JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s+(20\d{2})/);
+ if(mt)return {year:+mt[2],month:months[mt[1].slice(0,3)]};
+ if(state.monthValue)return {year:+state.monthValue.slice(0,4),month:+state.monthValue.slice(5,7)};
+ if(state.weekStart)return {year:+state.weekStart.slice(0,4),month:+state.weekStart.slice(5,7)};
+ return null;
+}
+function parseRotaDetailed(pages,raw){
+ if(!pages?.length)return {count:0,incomplete:0,expected:0};
+ const ym=monthYearFromRotaText(raw);
+ if(!ym)return {count:0,incomplete:0,expected:0};
+
+ const p=pages[0],items=p.items||[],w=p.width||595;
+ const dayNames=new Set(['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']);
+
+ // The GS rota has a stable visual grid. Use normalized X bands so the parser
+ // survives small page-size/scaling changes and does not depend on flattened text.
+ const bands=[
+   [0.205,0.305], // 1st on-call resident AM
+   [0.305,0.415], // 1st on-call resident PM/night
+   [0.415,0.498], // 2nd on-call specialist AM
+   [0.498,0.590], // 2nd on-call specialist PM/night
+   [0.590,0.675]  // 3rd on-call consultant
+ ];
+
+ // A valid row anchor is a day number in the far-left duty column with a day name nearby.
+ const anchors=items.filter(i=>{
+   const t=String(i.text||'').trim();
+   if(!/^(?:[1-9]|[12]\d|3[01])$/.test(t))return false;
+   if(i.x>w*0.12)return false;
+   return items.some(j=>dayNames.has(String(j.text||'').trim().toUpperCase()) && Math.abs(j.y-i.y)<3.5 && j.x>w*0.10 && j.x<w*0.22);
+ }).sort((a,b)=>Number(a.text)-Number(b.text));
+
+ function cellText(anchor,band){
+   const lo=w*band[0],hi=w*band[1];
+   const parts=items.filter(i=>{
+     const t=String(i.text||'').trim();
+     return t && Math.abs(i.y-anchor.y)<3.5 && i.x>=lo && i.x<hi;
+   }).sort((a,b)=>a.x-b.x).map(i=>String(i.text).trim());
+   return parts.join('').replace(/\s+/g,'').toUpperCase();
+ }
+
+ const rows=[];
+ let incomplete=0;
+ for(const a of anchors){
+   const day=Number(a.text);
+   const vals=bands.map(b=>cellText(a,b));
+   if(vals.some(v=>!v))incomplete++;
+   rows.push({
+     date:`${ym.year}-${String(ym.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,
+     day:new Date(`${ym.year}-${String(ym.month).padStart(2,'0')}-${String(day).padStart(2,'0')}T12:00:00`).toLocaleDateString('en-US',{weekday:'long'}).toUpperCase(),
+     residentAM:vals[0],residentNight:vals[1],specialistAM:vals[2],specialistNight:vals[3],consultant:vals[4]
+   });
+ }
+
+ if(rows.length){
+   const map=new Map(state.rota.map(x=>[x.date,x]));
+   rows.forEach(r=>map.set(r.date,r));
+   state.rota=[...map.values()].sort((a,b)=>a.date.localeCompare(b.date));
+   save();
+ }
+ const expected=new Date(ym.year,ym.month,0).getDate();
+ return {count:rows.length,incomplete,expected};
+}
+
+function parseRotaText(raw){
+ const txt=raw.replace(/\s+/g,' ').toUpperCase();
+ const months={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
+ let month=null,year=null;
+ const mt=txt.match(/\b(JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s+(20\d{2})/);
+ if(mt){month=months[mt[1].slice(0,3)];year=+mt[2]}
+ else if(state.monthValue){year=+state.monthValue.slice(0,4);month=+state.monthValue.slice(5,7)}
+ else if(state.weekStart){year=+state.weekStart.slice(0,4);month=+state.weekStart.slice(5,7)}
+ if(!month||!year)return 0;
+ const re=/\b([1-9]|[12]\d|3[01])\s+(SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY)\s+([A-Z.]+)\s+([A-Z.]+)\s+([A-Z.]+)\s+([A-Z.]+)\s+([A-Z.]+)/g;
+ const rows=[];let m;
+ while((m=re.exec(txt))!==null)rows.push({date:`${year}-${String(month).padStart(2,'0')}-${String(+m[1]).padStart(2,'0')}`,day:m[2],residentAM:m[3],residentNight:m[4],specialistAM:m[5],specialistNight:m[6],consultant:m[7]});
+ if(rows.length){const map=new Map(state.rota.map(x=>[x.date,x]));rows.forEach(r=>map.set(r.date,r));state.rota=[...map.values()].sort((a,b)=>a.date.localeCompare(b.date));save()}
+ return rows.length;
+}
+function matchPhonesIntoMembers(){
+ let n=0;for(const m of state.members){if(!m.phone){const p=bestPhoneFor(m.name);if(p){m.phone=p;n++}}}save();return n;
+}
+function loadPdfJs(){
+ return new Promise((resolve,reject)=>{
+   if(window.pdfjsLib)return resolve(window.pdfjsLib);
+   const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+   sc.onload=()=>resolve(window.pdfjsLib);sc.onerror=()=>reject(new Error('تعذر تحميل قارئ PDF. تأكد من وجود اتصال بالإنترنت عند قراءة الملف.'));document.head.appendChild(sc);
+ });
+}
+async function extractPdfDetailed(file){
+ const lib=await loadPdfJs();lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ const data=await file.arrayBuffer(),pdf=await lib.getDocument({data}).promise,pages=[],texts=[];
+ for(let i=1;i<=pdf.numPages;i++){
+   const page=await pdf.getPage(i),c=await page.getTextContent(),vp=page.getViewport({scale:1});
+   const items=c.items.map(x=>({text:x.str,x:x.transform[4],y:x.transform[5]}));
+   const text=items.map(x=>x.text).join(' ');texts.push(`--- PAGE ${i} ---\n${text}`);pages.push({items,text,width:vp.width,height:vp.height});
+ }
+ return{text:texts.join('\n\n'),pages};
+}
+async function readDuty(){
+ const f=$('dutyPdf').files[0];if(!f)return alert('اختر ملف المناوبات');
+ try{
+   $('dutyStatus').innerHTML='<div class="warn">جاري قراءة جدول المناوبات...</div>';
+   const d=await extractPdfDetailed(f);state.dutyText=d.text;$('dutyText').value=d.text;
+   const phones=parsePhones(d.pages);
+   const detail=parseRotaDetailed(d.pages,d.text);
+   let rows=detail.count;
+   if(rows===0)rows=parseRotaText(d.text); // fallback for a future non-tabular format
+   const matched=matchPhonesIntoMembers();inferPeriodFromRota(false);save();syncAll();
+   const complete=(detail.expected&&detail.count===detail.expected&&detail.incomplete===0);
+   const msg=detail.count
+     ?`تمت قراءة ${detail.count} من ${detail.expected||detail.count} يوم في الشهر${detail.incomplete?`، ويوجد ${detail.incomplete} صف/صفوف بها خانة ناقصة`:''}. تم التعرف على ${phones} رقم هاتف وربط ${matched} رقم بالأسماء الحالية.`
+     :`تمت القراءة النصية والتعرف على ${rows} يوم. تنسيق الملف مختلف عن شبكة الـRota المعتادة، فراجع النتائج.`;
+   $('dutyStatus').innerHTML=`<div class="${complete?'ok':'warn'}">${msg}</div>`;
+ }catch(e){$('dutyStatus').innerHTML=`<div class="error">${esc(e.message)}</div>`}
+}
+async function readTeams(){
+ const f=$('teamsPdf').files[0];if(!f)return alert('اختر ملف توزيع الفرق');
+ try{
+   $('teamsStatus').innerHTML='<div class="warn">جاري قراءة توزيع الفرق...</div>';
+   const d=await extractPdfDetailed(f);state.teamsText=d.text;$('teamsText').value=d.text;
+   const count=parseTeamsDetailed(d.pages);matchPhonesIntoMembers();save();syncAll();
+   $('teamsStatus').innerHTML=`<div class="${count?'ok':'warn'}">تم التعرف على ${count} اسمًا موزعًا على Team A/B/C. تم تحسين القارئ ليتعامل مع TEAM A/B/C واتجاه الجدول والحروف المتباعدة. راجع الأسماء والدرجات قبل التوليد.</div>`;
+ }catch(e){$('teamsStatus').innerHTML=`<div class="error">${esc(e.message)}</div>`}
+}
+
+
+function normalizeImportedMember(x){
+ return {
+   id:x.id||uid('m'),
+   name:String(x.name||'').trim(),
+   phone:String(x.phone||'').trim(),
+   grade:x.grade||'resident',
+   team:x.team===null||x.team===undefined?'':String(x.team)
+ };
+}
+function normalizeImportedRota(x){
+ return {
+   date:String(x.date||'').slice(0,10),
+   day:String(x.day||'').toUpperCase(),
+   residentAM:String(x.residentAM||'').trim().toUpperCase(),
+   residentNight:String(x.residentNight||'').trim().toUpperCase(),
+   specialistAM:String(x.specialistAM||'').trim().toUpperCase(),
+   specialistNight:String(x.specialistNight||'').trim().toUpperCase(),
+   consultant:String(x.consultant||'').trim().toUpperCase()
+ };
+}
+const CHATGPT_IMPORT_PROMPT=`You are preparing structured data for my General Surgery Scheduler app.
+
+I attached TWO PDFs:
+1) General Surgery On-call Rota PDF.
+2) General Surgery Teams / Doctors Distribution PDF.
+
+Read the actual tables carefully. If flat PDF text is confusing, use the visual table layout. Do not guess missing names, grades, teams, dates, or phone numbers.
+
+Create ONE import file for the scheduler with this exact wrapper:
+SURGERY_CHAT_IMPORT_V1
+{
+  "format": "SurgeryChatImportV1",
+  "month": "YYYY-MM",
+  "periodMode": "monthly",
+  "weekStart": "",
+  "members": [
+    {"name":"DR.NAME","phone":"","grade":"consultant|specialist|resident|program_resident|intern","team":"1|2|3|"}
+  ],
+  "rota": [
+    {"date":"YYYY-MM-DD","day":"SUNDAY","residentAM":"","residentNight":"","specialistAM":"","specialistNight":"","consultant":""}
+  ]
+}
+END_SURGERY_CHAT_IMPORT_V1
+
+Rules:
+- Rota must contain EVERY calendar day shown in the monthly rota, including Friday and Saturday.
+- Only the five core on-call fields are required: Resident AM, Resident Night, Specialist AM, Specialist Night, Consultant.
+- Ignore colorectal/oncology, breast/endocrine and plastic-surgery service columns.
+- Team A=1, Team B=2, Team C=3.
+- Consultants remain members but are not workload staff.
+- Preserve the department spelling closely, while normalizing obvious title spacing such as DR. NAME.
+- Doctors present in the rota/contact page but not assigned to A/B/C may be included with team="".
+- Do not invent a team.
+- Use phone numbers from the rota contact page only when clearly matched.
+- Before returning the file, verify the number of rota days against the month.
+- Return the finished result as a downloadable .txt file named like Surgery_Chat_Import_YYYY_MM.txt.`;
+
+function platformName(){
+ const ua=navigator.userAgent||'';
+ if(/iPhone|iPad|iPod/i.test(ua))return'iOS';
+ if(/Android/i.test(ua))return'Android';
+ return'Browser';
+}
+function initChatShareUI(){
+ const el=$('chatSharePrompt');if(el)el.value=CHATGPT_IMPORT_PROMPT;
+ const hint=$('platformHint');
+ if(hint){
+   const p=platformName();
+   if(p==='iOS')hint.innerHTML='على iPhone: استخدم زر المشاركة لاختيار ChatGPT. بعد انتهاء ChatGPT احفظ ملف النتيجة في تطبيق <b>Files</b> ثم استورده من هنا.';
+   else if(p==='Android')hint.innerHTML='على Android: استخدم زر المشاركة لاختيار ChatGPT. بعد انتهاء ChatGPT احفظ ملف النتيجة في <b>Downloads / Files</b> ثم استورده من هنا.';
+   else hint.innerHTML='استخدم المشاركة إذا دعمها المتصفح، وإلا انسخ التعليمات وارفع الملفين إلى ChatGPT يدويًا.';
+   if(storageNotice)hint.innerHTML+=`<br><span class="ok" style="display:inline-block;margin-top:7px">${esc(storageNotice)}</span>`;
+ }
+}
+async function shareMonthlyFiles(){
+ const rota=$('shareRotaPdf').files?.[0],teams=$('shareTeamsPdf').files?.[0],status=$('shareToChatStatus');
+ if(!rota||!teams){status.innerHTML='<div class="warn">اختر ملف المناوبات وملف الفرق أولاً.</div>';return}
+ const files=[rota,teams];
+ status.innerHTML='<div class="small">جاري تجهيز المشاركة…</div>';
+ try{
+   const payload={title:'General Surgery Scheduler Import',text:CHATGPT_IMPORT_PROMPT,files};
+   if(navigator.share && (!navigator.canShare || navigator.canShare(payload))){
+     await navigator.share(payload);
+     status.innerHTML='<div class="ok">تم فتح قائمة المشاركة. اختر ChatGPT ثم أرسل الملفين مع التعليمات الجاهزة.</div>';
+   }else{
+     await copyPlainText(CHATGPT_IMPORT_PROMPT);
+     status.innerHTML='<div class="warn">المشاركة المباشرة غير متاحة أثناء فتح البرنامج كملف من Downloads. تم نسخ التعليمات. ارفع الملفين إلى ChatGPT يدويًا الآن؛ وعند تشغيل النسخة من GitHub/PWA سيعمل زر المشاركة المباشرة إذا دعمها الجهاز.</div>';
+   }
+ }catch(e){
+   if(e?.name==='AbortError')return;
+   try{await copyPlainText(CHATGPT_IMPORT_PROMPT)}catch(_){}
+   status.innerHTML='<div class="warn">لم تكتمل المشاركة. تم نسخ التعليمات كخيار احتياطي؛ ارفع الملفين إلى ChatGPT يدويًا.</div>';
+ }
+}
+async function copyPlainText(text){
+ try{await navigator.clipboard.writeText(text)}
+ catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
+}
+
+function readTextFileCompat(file){
+ return new Promise((resolve,reject)=>{
+   try{
+     const reader=new FileReader();
+     reader.onload=()=>resolve(String(reader.result||''));
+     reader.onerror=()=>reject(reader.error||new Error('تعذر قراءة الملف'));
+     reader.readAsText(file,'UTF-8');
+   }catch(e){reject(e)}
+ });
+}
+
+function parseChatImportText(t){
+ const raw=String(t||'').trim();
+ if(!raw)throw Error('رسالة الاستيراد فارغة');
+
+ // Do not silently accept the program's own backup format in this field.
+ if(raw.includes('SURGERY_SCHEDULER_IMPORT_')){
+   throw Error('هذا ملف النسخة الاحتياطية للبرنامج وليس ملف ChatGPT. استخدم ملف SURGERY_CHAT_IMPORT_V1.');
+ }
+ if(!raw.includes('SURGERY_CHAT_IMPORT_V1') && !raw.includes('"format": "SurgeryChatImportV1"')){
+   throw Error('صيغة الملف غير صحيحة. يجب أن يكون SURGERY_CHAT_IMPORT_V1.');
+ }
+
+ const a=raw.indexOf('{'),b=raw.lastIndexOf('}');
+ if(a<0||b<a)throw Error('لم أجد JSON داخل رسالة ChatGPT');
+ const p=JSON.parse(raw.slice(a,b+1));
+ if(p.format!=='SurgeryChatImportV1')throw Error('format يجب أن يكون SurgeryChatImportV1');
+ if(!Array.isArray(p.rota))throw Error('لا توجد قائمة rota');
+ if(p.rota.length===0)throw Error('قائمة rota فارغة؛ لن يتم تغيير الفترة أو البيانات');
+ return p;
+}
+
+function applyParsedChatImport(p){
+ const incomingMembers=(p.members||[]).map(normalizeImportedMember).filter(m=>m.name);
+ const incomingRota=p.rota.map(normalizeImportedRota).filter(r=>r.date);
+
+ if(!incomingRota.length)throw Error('لم أجد أي يوم مناوبة صالح');
+
+ // Verify that the imported rota dates have a consistent YYYY-MM.
+ const months=[...new Set(incomingRota.map(r=>r.date.slice(0,7)))];
+ if(months.some(m=>!/^\d{4}-\d{2}$/.test(m)))throw Error('تواريخ Rota غير صالحة');
+
+ if(incomingMembers.length)state.members=incomingMembers;
+ state.rota=incomingRota;
+
+ if(Array.isArray(p.leaves))state.leaves=p.leaves;
+ if(Array.isArray(p.clinics))state.clinics=p.clinics;
+ if(Array.isArray(p.orRooms)&&p.orRooms.length)state.orRooms=p.orRooms;
+ if(Array.isArray(p.phoneDirectory))state.phoneDirectory=p.phoneDirectory;
+
+ // Chat imports decide the period from their actual rota, not from stale app state.
+ if(p.month && /^\d{4}-\d{2}$/.test(p.month)){
+   state.periodMode='monthly';
+   state.monthValue=p.month;
+   state.weekStart='';
+ }else if(p.periodMode==='weekly' && p.weekStart){
+   state.periodMode='weekly';
+   state.weekStart=p.weekStart;
+   state.monthValue='';
+ }else{
+   state.periodMode='monthly';
+   state.monthValue=incomingRota[0].date.slice(0,7);
+   state.weekStart='';
+ }
+
+ state.schedule={};
+ state.workConfig={};
+ state.orConfig={};
+ ensureConfigs();
+ save();
+ syncAll();
+
+ // Force all date selectors to the first active distribution date after sync.
+ const dates=periodDates();
+ ['setupDate','orDate','clinicDate','resultDate','waDate'].forEach(id=>{
+   const el=$(id); if(el && dates.length){el.value=dates[0]}
+ });
+ renderPeriod();renderOperations();renderClinics();renderResult();renderWhatsApp();
+
+ return {
+   members:incomingMembers.length,
+   rota:incomingRota.length,
+   period:state.periodMode==='monthly'?state.monthValue:state.weekStart,
+   distributionDays:dates.length
+ };
+}
+
+async function applyChatImportFile(){
+ const f=$('chatImportFile').files?.[0];
+ if(!f){$('chatImportStatus').innerHTML='<div class="warn">اختر ملف TXT أولاً.</div>';return}
+ $('chatImportStatus').innerHTML='<div class="small">جاري قراءة وتطبيق الملف…</div>';
+ try{
+   const text=await readTextFileCompat(f);
+   const p=parseChatImportText(text);
+   const r=applyParsedChatImport(p);
+   $('chatImportStatus').innerHTML=`<div class="ok"><b>تم تطبيق الملف ${esc(f.name)}.</b> ${r.members} اسم، ${r.rota} يوم مناوبة، الفترة: ${r.period}. أيام التوزيع الأحد–الخميس: ${r.distributionDays}.${storageNotice?`<br>${esc(storageNotice)}`:''}</div>`;
+ }catch(e){
+   $('chatImportStatus').innerHTML=`<div class="error">لم يتم تطبيق الملف: ${esc(e.message)}</div>`;
+ }
+}
+
+function backupPayload(){
+ return {format:'SurgerySchedulerImportV22',periodMode:state.periodMode,weekStart:state.weekStart,monthValue:state.monthValue,month:state.monthValue,members:state.members,rota:state.rota,phoneDirectory:state.phoneDirectory,workConfig:state.workConfig,orRooms:state.orRooms,orConfig:state.orConfig,fixedORs:state.fixedORs,fixedOROverrides:state.fixedOROverrides,extraORs:state.extraORs,fixedClinics:state.fixedClinics,clinics:state.clinics,leaves:state.leaves,weeklyER:state.weeklyER,internPolicy:state.internPolicy};
+}
+function exportBackup(){
+ const payload=backupPayload();
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=`Surgery_Scheduler_Backup_${new Date().toISOString().slice(0,10)}.json`;
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);
+ $('backupStatus').innerHTML='<div class="ok">تم إنشاء ملف النسخة الاحتياطية. احتفظ به لاستعادة إعداداتك لاحقًا.</div>';
+}
+async function importBackupFile(){
+ const f=$('backupFile').files?.[0];
+ if(!f){$('backupStatus').innerHTML='<div class="warn">اختر ملف النسخة الاحتياطية أولاً.</div>';return}
+ try{
+   const p=JSON.parse(await f.text());
+   if(!['SurgerySchedulerImportV22','SurgerySchedulerImportV21','SurgerySchedulerImportV20','SurgerySchedulerImportV19','SurgerySchedulerImportV18','SurgerySchedulerImportV17','SurgerySchedulerImportV16','SurgerySchedulerImportV15'].includes(p.format))throw Error('ملف النسخة الاحتياطية غير معروف');
+   state={...freshState(),...p,schedule:{},dutyText:'',teamsText:''};
+   ensureState();inferPeriodFromRota(false);ensureConfigs();save();syncAll();
+   $('backupStatus').innerHTML='<div class="ok">تمت استعادة النسخة الاحتياطية بنجاح. أعد توليد الجدول من صفحة التوزيع.</div>';
+ }catch(e){$('backupStatus').innerHTML=`<div class="error">تعذر استعادة النسخة: ${esc(e.message)}</div>`}
+}
+async function copyText(el){try{await navigator.clipboard.writeText(el.value)}catch(e){el.select();document.execCommand('copy')}}
+function clearAll(){if(!confirm('مسح جميع بيانات البرنامج المحلية؟'))return;state=freshState();save();syncAll();showPage('data')}
+function syncAll(){
+ renderPeriodControls();ensureConfigs();syncDateSelectors();
+ initChatShareUI();renderMembers();renderPeriod();renderOperations();renderExtraORs();renderClinics();renderLeaves();renderResult();renderWhatsApp();
+}
+
+$('shareToChatGPTBtn').addEventListener('click',shareMonthlyFiles);
+$('copyChatPromptBtn').addEventListener('click',async()=>{await copyPlainText(CHATGPT_IMPORT_PROMPT);$('shareToChatStatus').innerHTML='<div class="ok">تم نسخ التعليمات.</div>'});
+$('applyChatFileBtn').addEventListener('click',()=>{if($('chatImportFile').files?.[0])applyChatImportFile();else $('chatImportFile').click()});
+$('chatImportFile').addEventListener('change',()=>{if($('chatImportFile').files?.[0])applyChatImportFile()});
+$('periodMode').addEventListener('change',updatePeriodMode);
+$('weekStart').addEventListener('change',updatePeriodValue);
+$('monthValue').addEventListener('change',updatePeriodValue);
+$('exportBackupBtn').addEventListener('click',exportBackup);
+$('importBackupBtn').addEventListener('click',importBackupFile);
+$('backupFile').addEventListener('change',()=>{$('backupStatus').innerHTML='<div class="small">تم اختيار الملف. اضغط استعادة النسخة.</div>'});
+$('clearBtn').addEventListener('click',clearAll);
+$('addMemberBtn').addEventListener('click',addMember);
+$('weeklyER').addEventListener('change',()=>{state.weeklyER=$('weeklyER').value;save()});
+$('internPolicy').addEventListener('change',()=>{state.internPolicy=$('internPolicy').value;save()});
+$('generateBtn').addEventListener('click',generate);
+$('setupDate').addEventListener('change',renderPeriod);
+$('setupPrev').addEventListener('click',()=>moveDate('setupDate',-1,renderPeriod));
+$('setupNext').addEventListener('click',()=>moveDate('setupDate',1,renderPeriod));
+$('orDate').addEventListener('change',renderOperations);
+$('orPrev').addEventListener('click',()=>moveDate('orDate',-1,renderOperations));
+$('orNext').addEventListener('click',()=>moveDate('orDate',1,renderOperations));
+$('addORRoomBtn').addEventListener('click',addORRoom);
+$('extraORDate').addEventListener('change',renderExtraORs);
+$('addExtraORBtn').addEventListener('click',addExtraOR);
+$('extraORConsultant').addEventListener('change',()=>{const m=byId($('extraORConsultant').value);if(m?.team)$('extraORTeam').value=m.team});
+$('clinicDate').addEventListener('change',renderClinics);
+$('addClinicBtn').addEventListener('click',addClinic);
+$('addLeaveBtn').addEventListener('click',addLeave);
+$('resultDate').addEventListener('change',renderResult);
+$('resultPrev').addEventListener('click',()=>moveDate('resultDate',-1,renderResult));
+$('resultNext').addEventListener('click',()=>moveDate('resultDate',1,renderResult));
+$('waDate').addEventListener('change',renderWhatsApp);
+$('waTeam').addEventListener('change',renderWhatsApp);
+$('copyWaBtn').addEventListener('click',()=>copyText($('waText')));
+
+
+let deferredInstallPrompt=null;
+
+function isStandaloneMode(){
+ return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
+}
+
+function updatePWAStatus(){
+ const el=$('pwaStatus'); if(!el)return;
+ const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+ if(isStandaloneMode()){
+   el.innerHTML='<span class="ok">التطبيق يعمل الآن كتطبيق مثبت على الشاشة الرئيسية.</span>';
+ }else if(ios){
+   el.innerHTML='على iPhone/iPad: افتح زر المشاركة في Safari ثم اختر <b>Add to Home Screen / إضافة إلى الشاشة الرئيسية</b>.';
+ }else if(location.protocol==='https:'){
+   el.innerHTML='يمكن تثبيت التطبيق من المتصفح. إذا ظهر زر <b>تثبيت التطبيق</b> في الأعلى فاستخدمه.';
+ }else{
+   el.innerHTML='وضع PWA الكامل يعمل بعد رفع الملفات إلى GitHub Pages عبر HTTPS. فتح ملف HTML من Downloads يبقى للتجربة فقط.';
+ }
+}
+
+window.addEventListener('beforeinstallprompt',e=>{
+ e.preventDefault();
+ deferredInstallPrompt=e;
+ const btn=$('installAppBtn');
+ if(btn)btn.style.display='block';
+});
+
+$('installAppBtn')?.addEventListener('click',async()=>{
+ if(!deferredInstallPrompt)return;
+ deferredInstallPrompt.prompt();
+ try{await deferredInstallPrompt.userChoice}catch(e){}
+ deferredInstallPrompt=null;
+ $('installAppBtn').style.display='none';
+ updatePWAStatus();
+});
+
+window.addEventListener('appinstalled',()=>{
+ const btn=$('installAppBtn'); if(btn)btn.style.display='none';
+ updatePWAStatus();
+});
+
+async function consumeSharedImport(){
+ const params=new URLSearchParams(location.search);
+ if(params.get('shared-import')!=='1')return;
+ try{
+   const cache=await caches.open('gs-scheduler-share-v1');
+   const key=new URL('./__shared_import__',location.href).href;
+   const res=await cache.match(key);
+   if(!res)throw new Error('لم أجد ملف المشاركة');
+   const text=await res.text();
+   const parsed=parseChatImportText(text);
+   const r=applyParsedChatImport(parsed);
+   await cache.delete(key);
+   showPage('data');
+   $('chatImportStatus').innerHTML=`<div class="ok"><b>تم استيراد الملف المشترك مباشرة.</b> ${r.members} اسم، ${r.rota} يوم مناوبة، الفترة: ${r.period}.</div>`;
+   history.replaceState(null,'',location.pathname);
+ }catch(e){
+   showPage('data');
+   $('chatImportStatus').innerHTML=`<div class="error">تعذر استيراد الملف المشترك: ${esc(e.message||e)}</div>`;
+ }
+}
+
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+ window.addEventListener('load',async()=>{
+   try{
+     await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+   }catch(e){}
+   updatePWAStatus();
+   consumeSharedImport();
+ });
+}else{
+ updatePWAStatus();
+}
+
+syncAll();
+showPage('data');
+</script>
+</body>
+</html>
