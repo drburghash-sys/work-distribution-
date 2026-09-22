@@ -21,10 +21,14 @@ jobs:
         run: |
           base64 -d calculator_source.b64 > calculator.zip
           unzip -q calculator.zip
+          cp calculator-patch/MainActivity.java FloatingCalculator/app/src/main/java/com/bms/floatingcalculator/MainActivity.java
+          cp calculator-patch/CalculatorPanel.java FloatingCalculator/app/src/main/java/com/bms/floatingcalculator/CalculatorPanel.java
+          sed -i "s/versionCode 1/versionCode 2/" FloatingCalculator/app/build.gradle
+          sed -i "s/versionName '1.0'/versionName '1.1'/" FloatingCalculator/app/build.gradle
       - name: Build APK
         working-directory: FloatingCalculator
         run: gradle :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: FloatingCalculator-APK
+          name: FloatingCalculator-APK-v1.1
           path: FloatingCalculator/app/build/outputs/apk/debug/app-debug.apk
