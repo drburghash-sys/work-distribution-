@@ -74,3 +74,5 @@ public class MainActivity extends Activity {
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
     }
 }
+
+// v1.1 rebuild trigger
